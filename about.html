@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | NUnite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,600,700">
+    
+    <style>
+        /* Styles from Main Code */
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo-gradient {
+            background: linear-gradient(to right, #FFD700 0%, #FFD700 35%, #8A2BE2 70%, #0000FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Original About Page Styles */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Montserrat', Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #222;
+            overflow-x: hidden;
+        }
+
+                /* Updated Hero Positioning to match image */
+        .hero-section {
+            /* Adding a darker gradient (shadow) over the image */
+            background-image: linear-gradient(
+                hwb(248 0% 82% / 0.6), 
+                rgba(10, 6, 42, 0.4)
+            ), url('bg1.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start;
+            color: #fff;
+            position: relative;
+            padding: 0 5% 8% 8%;
+            /* Inset box shadow creates a vignette effect on the edges */
+            box-shadow: inset 0 0 150px rgba(0, 0, 0, 0.7); 
+        }
+
+        .hero-content {
+            z-index: 1;
+            text-align: left; /* Ensures text is left-aligned */
+            max-width: 600px; /* Prevents text from stretching too far right */
+        }
+
+        .hero-content h1 {
+            font-size: clamp(3rem, 8vw, 5rem); /* Responsive sizing */
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-content p {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 400;
+            text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+            margin-bottom: 8rem;
+        }
+
+        .white-text {
+            color: #ffffff;
+        }
+
+        .yellow-text {
+            color: #FFD700; /* Matching the NU Yellow */
+        }
+        .section-container { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-title { text-align: center; font-size: 2.5rem; font-weight: 700; margin-bottom: 40px; }
+        .black { color: black; }
+        .black-blue { color: #003366; }
+        .yellow { color: #FFD700; }
+        .what-is-nunite, .mission-vision-container, .how-it-started { margin-bottom: 100px; }
+        .what-is-nunite p { text-align: center; font-size: 1.1rem; line-height: 1.6; max-width: 1000px; margin: 0 auto 20px; border: 1px solid #000; padding: 1cm 2cm; border-radius: 0.5cm; box-shadow: 5px 5px 10px rgba(174, 35, 174, 0.5); }
+        .mission-vision-container { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+        .mission-card, .vision-card { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 30px; max-width: 450px; text-align: center; transition: transform 0.3s ease; }
+        .mission-card { box-shadow: 0 -4px 8px #ffe878; }
+        .vision-card { box-shadow: 0 -4px 8px rgba(174, 35, 174, 0.5); }
+        .mission-card:hover, .vision-card:hover { transform: translateY(-10px); }
+        .how-it-started .timeline { position: relative; max-width: 800px; margin: 0 auto; }
+        .how-it-started .timeline::after { content: ''; position: absolute; width: 2px; background-color: #000; top: 0; bottom: 0; left: 50%; margin-left: -2px; }
+        .timeline-container { padding: 10px 40px; position: relative; width: 50%; }
+        .timeline-container::after { content: ''; position: absolute; width: 15px; height: 15px; right: -11px; background-color: #100707; border: 4px solid #000; top: 50%; transform: translateY(-50%); border-radius: 50%; z-index: 1; transition: all 0.5s ease; }
+        .right { left: 50%; }
+        .right::after { left: -12px; }
+        .timeline-content { padding: 20px 30px; background-color: #fff; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+        .timeline-container.left .timeline-content { box-shadow: -4px 4px 8px #ffe878; }
+        .timeline-container.right .timeline-content { box-shadow: -4px 4px 8px rgba(174, 35, 174, 0.5); }
+        .timeline-content:hover { transform: translateY(-5px) scale(1.02); }
+        .ready-section { text-align: center; padding: 50px; background-color: #fff; border-radius: 8px; margin: 40px auto 0; max-width: 700px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .ready-btn { background-color: #5155d6; color: #fff; padding: 12px 25px; border-radius: 15px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; }
+        .ready-btn:hover { background-color: #FFC107; transform: translateY(-2px); }
+        
+        /* Animation Utilities */
+        .anim-fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .anim-fade-in.is-visible { opacity: 1; transform: translateY(0); }
+        .timeline-container.left.anim-fade-in { transform: translateX(-50px); }
+        .timeline-container.right.anim-fade-in { transform: translateX(50px); }
+        .timeline-container.left.anim-fade-in.is-visible, .timeline-container.right.anim-fade-in.is-visible { transform: translateX(0); }
+    </style>
+</head>
+<body>
+
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#1e1b4b]/90 backdrop-blur-sm border-b border-white/10">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex justify-between items-center gap-8">
+            <div class="flex items-center flex-shrink-0">
+                <h1 class="text-3xl font-bold tracking-tight cursor-pointer logo-gradient" onclick="window.location.href='index.html'">
+                    NUnite
+                </h1>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-6 text-white text-sm">
+                <a href="index.html" class="hover:text-indigo-300 transition-colors">Home</a>
+                <a href="about.html" class="hover:text-indigo-300 transition-colors">About</a>
+            </div>
+            
+            <div class="flex-1 max-w-2xl invisible">
+                </div>
+            
+            <div class="relative flex items-center flex-shrink-0">
+                <button onclick="toggleAuthMenu()" class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors border border-white/10 shadow-lg">
+                    <i class="fa-solid fa-user text-white"></i>
+                </button>
+                <div id="authDropdown" class="hidden absolute right-0 top-12 w-40 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-[100] animate-fade-in">
+                    <a href="sign_in.html" class="block px-4 py-2 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">Sign In</a>
+                    <a href="sign_up.html" class="block px-4 py-2 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors border-t border-slate-100">Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <header class="hero-section">
+    <div class="hero-content">
+        <h1 class="anim-fade-in">
+            <span class="white-text">About</span> <span class="yellow-text">NUnite</span>
+        </h1>
+        <p class="anim-fade-in">
+            NUnite is a comprehensive university organization directory platform 
+            that connects students with their perfect campus communities. It 
+            makes discovering opportunities on campus easier and more 
+            accessible, helping every student find where they truly belong.
+        </p>
+    </div>
+</header>
+
+    <main>
+        <div class="section-container">
+            <section class="what-is-nunite">
+                <h2 class="section-title anim-fade-in">
+                    <span class="black">WHAT IS</span> <span class="black-blue">NUnite?</span>
+                </h2>
+                <p class="anim-fade-in">NUnite is a comprehensive university organization directory platform that connects students with their perfect campus communities. It makes discovering opportunities on campus easier and more accessible for every student to find where they truly belong.<br><br>
+                We bridge the gap between students and campus organizations by providing an intuitive platform that facilitates meaningful connections and fosters community engagement across the university.</p>
+            </section>
+
+            <section class="mission-vision">
+                <h2 class="section-title anim-fade-in">
+                    <span class="black">Our</span> <span class="yellow">Mission</span> <span class="black">&</span> <span class="black-blue">Vision</span>
+                </h2>
+                <div class="mission-vision-container">
+                    <div class="mission-card anim-fade-in">
+                        <h3 class="font-bold">Our Mission</h3>
+                        <p>To bridge the gap between students and campus organizations by providing an intuitive platform that facilitates meaningful connections and fosters community engagement.</p>
+                    </div>
+                    <div class="vision-card anim-fade-in">
+                        <h3 class="font-bold">Our Vision</h3>
+                        <p>To create a vibrant campus ecosystem where every student can easily discover their niche, contribute to communities, and develop lifelong connections.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="how-it-started">
+                <h2 class="section-title anim-fade-in">
+                    <span class="black-blue">How it</span> <span class="yellow">Started</span>
+                </h2>
+                <div class="timeline">
+                    <div class="timeline-container left anim-fade-in">
+                        <div class="timeline-content">
+                            <h4>Freshies Week</h4>
+                            <p>Witnessed how not all organizations could set up booths, limiting their reach.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-container right anim-fade-in">
+                        <div class="timeline-content">
+                            <h4>The Idea</h4>
+                            <p>Inspired the idea of creating a centralized online platform for all organizations.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-container left anim-fade-in">
+                        <div class="timeline-content">
+                            <h4>Development</h4>
+                            <p>Ensuring every NU student could freely explore organizations equally.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-container right anim-fade-in">
+                        <div class="timeline-content">
+                            <h4>Present</h4>
+                            <p>Giving every organization equal visibility and helping students find their home.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ready-section anim-fade-in">
+                <h2 class="text-2xl font-bold mb-6">Ready to Find Your Community?</h2>
+                <a href="index.html" class="ready-btn">Explore Organizations</a>
+            </section>
+        </div>
+    </main>
+
+    <footer class="w-full mt-20">
+        <div class="bg-[#ffcc00] py-10 text-center">
+            <p class="text-black font-medium tracking-wide">
+                Copyright <span class="font-bold">2025</span>. All Rights Reserved
+            </p>
+        </div>
+        <div class="bg-[#1e1b4b] py-6">
+            <div class="container mx-auto px-4 md:px-12 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center">
+                    <h2 class="text-3xl font-bold tracking-tight logo-gradient">NUnite</h2>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="text-white text-lg font-light tracking-widest uppercase">National University</span>
+                    <img src="image/imageLogo.png" alt="National University" class="h-12 w-auto object-contain">
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Header Logic
+        function toggleAuthMenu() {
+            const dropdown = document.getElementById('authDropdown');
+            dropdown.classList.toggle('hidden');
+            window.onclick = function(event) {
+                if (!event.target.closest('button')) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        }
+
+        // About Page Scroll Animations
+        document.addEventListener('DOMContentLoaded', () => {
+            const animElements = document.querySelectorAll('.anim-fade-in');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    } else {
+                        entry.target.classList.remove('is-visible');
+                    }
+                });
+            }, { threshold: 0.25 });
+            animElements.forEach(element => observer.observe(element));
+        });
+    </script>
+</body>
+</html>

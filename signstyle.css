@@ -1,0 +1,224 @@
+/* Login/Signup Form Styles */
+
+body {
+    background-color: #f0f2f5;
+    font-family: 'Poppins', sans-serif; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.form-container {
+    background-color: #daf1fb;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 3px;
+    border: 2px solid black;
+    padding: 50px 80px;
+    margin: auto;
+}
+
+.form-title {
+    color: #333;
+    font-size: 2.0rem;
+    margin-top: 10px;
+    margin-bottom: 25px !important;
+    position: relative;
+    text-align: center;
+    font-weight: 100;
+}
+
+.form-container form {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.custom-input {
+    background-color: #daf1fb;
+    border: 1px solid #ced4da;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    padding: 15px;
+    padding-right: 160px;
+    align-items: center;
+    font-size: 1.1rem;
+}
+
+.custom-input::placeholder {
+    color: #888;
+}
+
+.custom-input:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    background-color: #f8faff;
+}
+
+.custom-inputup {
+    background-color: #daf1fb;
+    border: 1px solid #ced4da;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    padding: 15px;
+    padding-right: 167px;
+    align-items: center;
+    font-size: 1.1rem;
+}
+
+.custom-inputup::placeholder {
+    color: #888;
+}
+
+.custom-inputup:focus{
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    background-color: #f8faff;
+}
+
+.custom-btn-yellow {
+    background-color: #FFD700;
+    color: #333;
+    font-weight: 800;
+    border-radius: 12px;
+    padding: 12px 160px;
+    text-decoration: none;
+    border: 2px solid black;
+    font-size: 1.1rem;
+}
+
+.custom-btn-yellow:hover {
+    background-color: #e6c200;
+    color: #333;
+    border: 2px solid black;
+}
+
+.custom-btn-yellowup {
+    background-color: #FFD700;
+    color: #333;
+    text-decoration: none;
+    padding: 12px 60px;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: bolder;
+    border: 2px solid black;
+    font-size: 1.1rem;
+}
+
+.custom-btn-yellowup:hover {
+    background-color: #e6c200;
+    color: #333;
+    border: 2px solid black;
+}
+
+.forgot-password-link {
+    color: #333;
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    margin-bottom: 09px;
+}
+
+.forgot-password-link:hover {
+    text-decoration: underline;
+    color: #333;
+}
+
+.or-divider {
+    margin-top: 5px;
+    margin-bottom: 10px;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.custom-btn-yellow-pass {
+    background-color: #FFD700;
+    color: #333;
+    font-weight: 800;
+    border-radius: 12px;
+    padding: 12px 116px;
+    text-decoration: none;
+    border: 2px solid black;
+    font-size: 1.1rem;
+}
+
+.custom-btn-yellow-pass:hover {
+    background-color: #e6c200;
+    color: #333;
+    border: 2px solid black;
+}
+
+.password-description {
+    text-align: center; 
+    margin-bottom: 1.5rem; 
+    font-size: 0.9rem; 
+}
+
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 42%;
+    right: 6%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+}
+
+#password-strength {
+    margin-top: 5px;  
+    margin-bottom: 15px; 
+    font-size: 0.9rem; 
+}
+
+
+/* --- Media Queries for Mobile Responsiveness --- */
+@media (max-width: 600px) {
+    .form-container {
+        padding: 30px 15px; 
+    }
+
+    .form-title {
+       font-size: 1.2rem; 
+    }
+
+    .custom-input {
+        padding: 9px 10px;
+        margin: 2px 6px ;
+        font-size: 0.8rem;
+    }
+
+    .custom-btn-yellow {
+        padding: 5px 63px; 
+        font-size: 0.8rem;
+    }
+
+    .custom-btn-yellowup {
+        padding: 5px 20px; 
+        font-size: 0.8rem;
+    }
+
+    .forgot-password-link {
+        font-size: 0.6rem;
+    }
+
+    .or-divider {
+        font-size: 0.6rem;
+    }
+
+    .custom-btn-yellow-pass {
+        padding: 5px 30px;
+        font-size: 0.8rem; 
+    }
+
+    .password-description {
+        font-size: 0.8rem;
+    }
+}

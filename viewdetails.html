@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organization Details | NUnite</title>
+    <link rel="stylesheet" href="view.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Small fix for the logo if using Emojis from your data */
+        .logo-emoji {
+            font-size: 4rem;
+            margin-right: 1.5rem;
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header" style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-bottom: 2rem; width: 100%;">
+    <a href="index.html" class="back-link" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+        <img src="/image/back.png" alt="back icon" class="button-icon" style="height: 20px; width: auto; margin-right: 8px;"> 
+        <span style="font-weight: 600;">Back</span>
+    </a>
+
+    <div style="width: 1px; height: 24px; background-color: #e2e8f0;"></div>
+
+    <h1 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e1b4b; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+        Organizations 
+        <span id="orgCategory" style="text-transform: capitalize; color: #000000; font-weight: 400; opacity: 0.7;">Category</span>
+    </h1>
+</header>
+</header>
+
+        <section class="card organization-card">
+            <div class="organization-header">
+                <div id="orgLogo" class="logo-emoji"></div>
+                
+                <div class="organization-info">
+                    <h2 id="orgName">Loading Organization...</h2>
+                    <p id="orgTagline">"Loading description..."</p>
+                    <div class="details">
+                        <span>
+                            <img src="image/group.png" alt="members icon" class="detail-icon"> 
+                            <span id="orgMemberCount">0</span> members
+                        </span>
+                        <span>
+                            <img src="image/point.png" alt="location icon" class="detail-icon"> 
+                            NU Manila, 550 M.F. Jhocson Street, Sampaloc, Manila
+                        </span>
+                    </div>
+                    <div class="buttons">
+                    <button onclick="checkLogin('join')" class="button join-button">
+                        <img src="image/heart.png" alt="checkmark icon" class="button-icon"> Join Organization
+                    </button>
+                    <button onclick="checkLogin('contact')" class="button contact-button">
+                        <img src="image/message.png" alt="email icon" class="button-icon"> Contact
+                    </button>
+                </div>
+
+                <div id="infoModal" class="modal-overlay hidden">
+                <div class="modal-container">
+                    <button onclick="closeModal()" class="absolute-close">&times;</button>
+
+                    <div id="modalContent">
+                        </div>
+
+                    <div id="loginGate" class="hidden">
+                        <div class="border-t pt-4 mt-4">
+                            <p class="text-xs text-slate-500 mb-3">Please sign in to access these details</p>
+                            <a href="sign_in.html" class="modal-btn btn-primary">Sign In to NUnite</a>
+                            <p class="text-[10px] mt-2 text-slate-400">New here? <a href="sign_up.html" class="text-indigo-600 font-bold">Create Account</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <section class="section-card">
+                    <h3>About <span id="orgNameAbout">Organization</span></h3>
+                    <p id="orgDescription">Detailed description goes here.</p>
+                    <br><br>
+                    <h4>Join Requirements</h4>
+                    <p>Must be a bona fide student of National University and passionate about the community.</p>
+                    <br>
+                    <h4>Member Benefits</h4>
+                    <p>Leadership opportunities, skill development workshops, and networking with fellow students.</p>
+                </section>
+                
+                <section class="section-card">
+                    <h3>Upcoming Events</h3>
+                    <p>Stay tuned! Events are posted regularly on our official social media pages.</p>
+                </section>
+            </div>
+
+            <div class="right-panel">
+                <section class="section-card">
+                    <h3>Contact Information</h3>
+                    <ul class="contact-info-list" style="list-style: none; padding: 0;">
+                        <li style="display: flex; align-items: center; gap: 10px;">
+                            <img src="/image/message.png" alt="email icon" class="button-icon">
+                            <a href="#" id="orgEmail">contact@national-u.edu.ph</a>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="section-card">
+                    <h3>Leadership</h3>
+                    <p>Executive Board and Committee Chairs for Academic Year 2025-2026.</p>
+                </section>
+
+                <section class="section-card">
+                    <h3>Meeting Information</h3>
+                    <p>Weekly meetings held at the designated organization room or via MS Teams.</p>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="vi.js"></script>
+</body>
+</html>

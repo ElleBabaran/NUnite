@@ -1,0 +1,224 @@
+:root {
+    --primary-color: #3f51b5;
+    --primary-light: #e8f0fe;
+    --secondary-color: #0b2241;
+    --text-color: #495057;
+    --border-color: #c0c0c0;
+    --bg-light: #f8f9fa;
+    --bg-white: #ffffff;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--bg-light);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.container {
+    width: 100%;
+    max-width: 400%;
+}
+
+.header {
+    margin-bottom: 0.3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: -0.1rem;
+}
+
+.header p {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.header-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: -0.9rem;
+}
+
+.icon-img {
+    width: 3rem;
+    height: 3rem;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 400px;
+    background-color: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin: auto;
+}
+
+.form-container h2 {
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: var(--secondary-color);
+    margin-top: -1.0rem;
+    margin-bottom: 0.25rem;
+    text-align: center;
+}
+
+.form-container p {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.toggle-box {
+    background-color: var(--primary-light);
+    border-radius: 8px;
+    padding: 0.2rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.toggle-buttons {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.toggle-buttons button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem 4.4rem;
+    border-radius: 8px;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.toggle-buttons button.active {
+    background-color: var(--bg-white);
+    color: var(--secondary-color);
+    font-weight: 700;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-buttons button:not(.active) {
+    background-color: transparent;
+    color: var(--text-color);
+}
+
+.form-group {
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-control {
+    width: 91%;
+    padding: 0.75rem 1.1rem;
+    border: none;
+    background-color: var(--primary-light);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.25);
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--primary-color);
+    color: var(--bg-white);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #1a3250;
+}
+
+a {
+    text-decoration: none;
+}
+
+.password-input-wrapper {
+    position: relative;
+    display: flex; 
+    align-items: center;
+    width: 100%;
+}
+
+.password-input-wrapper .form-control {
+    width: 100%; 
+    padding-right: 3rem; 
+}
+
+.bi-eye, .bi-eye-slash {
+    position: absolute;
+    right: 1.1rem; 
+    cursor: pointer;
+    font-size: 1.25rem;
+    color: var(--text-color);
+    transition: color 0.3s ease;
+}
+
+.bi-eye:hover, .bi-eye-slash:hover {
+    color: var(--primary-color);
+}
+
+.strength-bar {
+    width: 100%;
+    height: 6px;
+    background-color: #ddd;
+    border-radius: 3px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0;
+    transition: width 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+.strength-fill[data-strength="weak"] {
+    background-color: #ff4d4f;
+}
+
+.strength-fill[data-strength="moderate"] {
+    background-color: #faad14;
+}
+
+.strength-fill[data-strength="strong"] {
+    background-color: #52c41a;
+}

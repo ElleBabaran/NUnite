@@ -9,148 +9,220 @@
 <body>
     <div class="admin-dashboard">
         <header class="dashboard-top">
-            <div class="header-left">
-                <h2>Admin <br> Dashboard</h2>
-                <p>Manage student organizations</p>
-                <div class="header-tabs">
+        <div class="header-left">
+            <a href="Index.html" class="back-link" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
+            <img src="/image/back.png" alt="back icon" class="button-icon" style="height: 20px; width: auto; margin-right: 8px; margin-bottom: 10px; margin-top: -24px;"> 
+            <span style="font-weight: 600; margin-bottom: 9px; margin-top: -24px;">Back</span>
+        </a>
+            
+            <div class="admin-top-row">
+                <div>
+                    <h2>Admin <br> Dashboard</h2>
+                    <p>Manage student organizations</p>
+                </div>
+                <button id="adminSignOutBtn" class="admin-logout-btn">Sign Out</button>
+            </div>
+            <div class="header-tabs">
                 <a href="#" class="tab active" data-section="organizations">Organizations</a>
                 <a href="#" class="tab" data-section="events">Events</a>
             </div>
-            </div>
-        </header>
+        </div>
+    </header>
 
         <main class="main-content">
             <div id="organizations" class="content-section active">
-              <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>Total Organizations</h3>
-                    <p>0</p>
-                    <img src="/image/totorg.png" alt="Organizations" class="stat-icon">
-                </div>
-                <div class="stat-card">
-                    <h3>Approved</h3>
-                    <p>0</p>
-                    <img src="/image/apr.png" alt="Approved" class="stat-icon">
-                </div>
-                <div class="stat-card">
-                    <h3>Total Members</h3>
-                    <p>0</p>
-                    <img src="/image/totmem.png" alt="Members" class="stat-icon">
-                </div>
-            </div>
-                <div class="organization-list-container">
-                <div class="organization-list">
-                    <div class="dashboard-header">
-                        <div class="header-title">
-                            <h2>All Organizations</h2>
-                        </div>
-                        <button class="add-button" id="addOrganizationBtn">
-                            <span class="icon">+</span>
-                            Add Organization
-                        </button>
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3>Total Organizations</h3>
+                        <p id="stat-total-orgs">0</p>
+                        <img src="/image/totorg.png" alt="Organizations" class="stat-icon">
+                    </div>
+                    <div class="stat-card">
+                        <h3>Approved</h3>
+                        <p id="stat-approved-orgs">0</p>
+                        <img src="/image/apr.png" alt="Approved" class="stat-icon">
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Members</h3>
+                        <p>0</p>
+                        <img src="/image/totmem.png" alt="Members" class="stat-icon">
                     </div>
                 </div>
-            </div>
+
+                <div class="organization-list-container">
+                    <div class="organization-list">
+                        <div class="dashboard-header">
+                            <div class="header-title"><h2>All Organizations</h2></div>
+                            <button class="add-button" id="addOrganizationBtn">
+                                <span class="icon">+</span> Add Organization
+                            </button>
+                        </div>
+                        <div id="orgTableBody">
+                            </div>
+                    </div>
+                </div>
             </div>
 
             <div id="events" class="content-section">
                 <div class="event-list-container">
-                <div class="event-list">
-                <div class="dashboard-header">
-                    <div class="header-title">
-                        <h2>Manage Organization Event</h2>
+                    <div class="dashboard-header">
+                        <div class="header-title"><h2>Manage Organization Events</h2></div>
+                        <button class="add-button" id="addEventBtn">
+                            <span class="icon">+</span> Add Event
+                        </button>
                     </div>
-                    <button class="add-button" id="addEventBtn">
-                        <span class="icon">+</span>
-                        Add Event
-                    </button>
+                    <div id="eventTableBody"></div>
                 </div>
-                </div>
-                </div>
-                <div class="event-list">
-                    </div>
             </div>
         </main>
     </div>
 
-    <div id="organizationModal" class="modal">
-        <div class="modal-content">
-            <span class="close-btn">&times;</span>
-            <h3>Add New Organization</h3>
-            <form id="organizationForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="orgName">Organization Name*</label>
-                        <input type="text" id="orgName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="orgCategory">Category</label>
-                        <select id="orgCategory"></select>
-                    </div>
+   <div id="organizationModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h3>Add New Organization</h3>
+        <form id="organizationForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="orgName">Organization Name*</label>
+                    <input type="text" id="orgName" required>
                 </div>
                 <div class="form-group">
-                    <label for="orgDescription">Description*</label>
-                    <input type="text" id="orgDescription" required>
+                    <label for="orgDept">Department*</label>
+                    <select id="orgDept" required>
+                        <option value="all">All Departments</option>
+                        <option value="CCIT">CCIT</option>
+                        <option value="COE">COE</option>
+                        <option value="CTHM">CTHM</option>
+                        <option value="CAH">CAH</option>
+                        <option value="COA">COA</option>
+                        <option value="CBA">CBA</option>
+                        <option value="CEAS">CEAS</option>
+                        <option value="None">None</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="orgCategory">Category</label>
+                <select id="orgCategory">
+                    <option value="all">All Categories</option>
+                    <option value="sports">Sports</option>
+                    <option value="arts">Arts</option>
+                    <option value="tech">Tech</option>
+                    <option value="social">Social</option>
+                    <option value="academics">Academics</option>
+                    <option value="media">Media</option>
+                    <option value="publication">Publication</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="orgDescription">Short Description*</label>
+                <input type="text" id="orgDescription" required>
+            </div>
+
+            <div class="form-group">
+                <label for="orgFullDescription">Full Description</label>
+                <textarea id="orgFullDescription"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="contactPerson">Contact Person</label>
+                    <input type="text" id="contactPerson">
                 </div>
                 <div class="form-group">
-                    <label for="orgFullDescription">Full Description</label>
-                    <textarea id="orgFullDescription"></textarea>
+                    <label for="contactEmail">Contact Email</label>
+                    <input type="email" id="contactEmail">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="contactPerson">Contact Person</label>
-                        <input type="text" id="contactPerson">
-                    </div>
-                    <div class="form-group">
-                        <label for="contactEmail">Contact Email</label>
-                        <input type="email" id="contactEmail">
-                    </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="website">Website</label>
+                    <input type="url" id="website">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="website">Website</label>
-                        <input type="url" id="website">
-                    </div>
-                    <div class="form-group">
-                        <label for="memberCount">Member Count</label>
-                        <input type="number" id="memberCount">
-                    </div>
+                <div class="form-group">
+                    <label for="memberCount">Member Count</label>
+                    <input type="number" id="memberCount">
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="meetingTime">Meeting Time</label>
-                        <input type="text" id="meetingTime">
-                    </div>
-                    <div class="form-group">
-                        <label for="location">Location</label>
-                        <input type="text" id="location">
-                    </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="meetingTime">Meeting Time</label>
+                    <input type="text" id="meetingTime">
                 </div>
-                <div class="form-group file-upload-group">
-                    <label for="orgLogoFile">Organization Logo*</label>
-                    <input type="file" id="orgLogoFile" class="file-input" accept="image/*">
-                    <label for="orgLogoFile" class="upload-btn">Upload</label>
-                    <img id="/images/logo-preview" class="logo-preview" src="#" alt="Organization Logo Preview">
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location">
                 </div>
-                <div class="form-group toggle-group">
+            </div>
+
+            <div class="form-group">
+                <label>Organization Logo*</label>
+                <label for="orgLogoFile" class="upload-btn">Upload</label> 
+                <input type="file" id="orgLogoFile" accept="image/*" style="display: none;">
+                <img id="logo-preview" src="#" alt="Preview" style="display: none; width: 100px; height: 100px; border-radius: 8px; margin-top: 10px; object-fit: cover;">
+            </div>
+
+            <div class="form-group toggle-group">
                 <div class="toggle-text-container">
-                    <label for="applicationsStatus" class="toggle-label">Applications Status</label>
+                    <label class="toggle-label">Applications Status</label>
                     <p class="toggle-description">Applications are open - students can join</p>
                 </div>
-                
                 <div class="toggle-switch-wrapper">
                     <input type="checkbox" id="applicationsStatus" class="toggle-input" checked>
                     <label for="applicationsStatus" class="toggle-slider"></label>
                 </div>
             </div>
-                <div class="modal-buttons">
-                    <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit" class="add-btn">Add Organization</button>
-                </div>
-            </form>
-        </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="cancel-btn" onclick="document.getElementById('organizationModal').style.display='none'">Cancel</button>
+                <button type="submit" class="add-btn">Save Organization</button>
+            </div>
+        </form>
     </div>
-    
+</div>
+<div id="viewOrgModal" class="modal">
+    <div class="modal-content view-card-modal">
+        <span class="close-btn" onclick="document.getElementById('viewOrgModal').style.display='none'">&times;</span>
+        
+        <div class="view-card-header">
+            <div class="view-logo-container">
+                <img id="viewOrgLogo" src="" alt="Org Logo">
+            </div>
+            <div class="view-title-section">
+                <h2 id="viewOrgName">Organization Name</h2>
+                <div class="view-tags" id="viewOrgTags">
+                    </div>
+            </div>
+        </div>
+
+        <p class="view-tagline" id="viewOrgTagline">Organization Tagline/Description</p>
+
+        <div class="view-info-grid">
+            <div class="info-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:#6366f1"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4.13a4 4 0 11-8 0 4 4 0 018 0zm6 0a4 4 0 11-8 0"/></svg>
+                <span id="viewOrgMembers">0 members</span>
+            </div>
+            <div class="info-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:#6366f1"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                <span id="viewOrgEmail">N/A</span>
+            </div>
+            <div class="info-item">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:#6366f1"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span id="viewOrgLocation">Location</span>
+            </div>
+        </div>
+
+        <button class="view-details-footer-btn" onclick="document.getElementById('viewOrgModal').style.display='none'">
+            View Details
+        </button>
+    </div>
+</div>
+
     <div id="eventModal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
@@ -158,7 +230,7 @@
             <form id="eventForm">
                 <div class="form-group">
                     <label for="eventTitle">Event Title</label>
-                    <input type="text" id="eventTitle">
+                    <input type="text" id="eventTitle" required>
                 </div>
                 <div class="form-group">
                     <label for="eventDescription">Description</label>
@@ -174,24 +246,22 @@
                         <input type="text" id="eventLocation">
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="maxAttendees">Max Attendees</label>
-                        <input type="number" id="maxAttendees">
-                    </div>
-                    <div class="form-group">
-                        <label for="registrationDeadline">Registration Deadline</label>
-                        <input type="datetime-local" id="registrationDeadline">
-                    </div>
-                </div>
                 <div class="modal-buttons">
                     <button type="button" class="cancel-btn">Cancel</button>
-                    <button type="submit" class="add-btn">Add Event</button>
-                </div>
+                    <button type="submit" class="add-btn">Save Event</button>
+           
             </form>
         </div>
     </div>
 
     <script src="admin.js"></script>
+    <script>
+        // Admin Sign Out - clears localStorage session
+        document.getElementById('adminSignOutBtn')?.addEventListener('click', () => {
+            localStorage.removeItem('userFullName');
+            localStorage.removeItem('isAdmin');
+            window.location.href = 'sign_in.html';
+        });
+    </script>
 </body>
 </html>

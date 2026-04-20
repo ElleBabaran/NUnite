@@ -4,10 +4,12 @@ body {
     padding: 0;
     background-color: #ffffff;
     color: #333;
+    overflow-x: hidden;
 }
 
 .admin-dashboard {
     padding: 30px;
+    
 }
 
 .dashboard-top {
@@ -179,25 +181,27 @@ body {
 
 .modal {
     display: none;
-    position: fixed;
-    z-index: 1;
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
     left: 0;
     top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
+    width: 100%; 
+    height: 100%; 
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0,0,0,0.4);
 }
 
 .modal-content {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    width: 90%;
+    background-color: #fefefe;
+    margin: 5% auto; /* 5% from the top */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; 
     max-width: 600px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    position: relative;
+    border-radius: 12px;
+    max-height: 90vh; /* Keeps it from going off-screen */
+    overflow-y: auto; /* Adds a scrollbar inside the modal */
 }
 
 .modal-content h3 {
@@ -255,14 +259,20 @@ textarea {
 }
 
 .upload-btn {
-    background-color: #e9e9e9;
-    color: #555;
-    border: 1px solid #ccc;
-    padding: 20px;
-    margin-right: 13.5cm;
-    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    background-color: #f0f0f0;
+    border: 2px dashed #bbb;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 14px;
+    color: #555;
+    transition: all 0.3s;
+    overflow: hidden; /* Keeps the preview image inside the corners */
+    position: relative;
 }
 
 .modal-buttons {
@@ -377,6 +387,213 @@ textarea {
     transform: translateX(24px);
 }
 
+.dashboard-top {
+    background-color: #fff;
+    padding: 30px;
+    border-bottom: 1px solid #eee;
+}
+.dashboard-top {
+    background-color: #fff;
+    padding: 30px;
+    border-bottom: 1px solid #eee;
+}
+
+.admin-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px; /* Space between title and tabs */
+}
+
+.admin-logout-btn {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-right: 1cm;
+}
+
+.admin-logout-btn:hover {
+    background-color: #cc0000;
+}
+
+/* Container for the cards */
+#orgTableBody {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+/* The Horizontal Card */
+.org-card-horizontal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1.5px solid #333; /* Distinct dark border from your image */
+    border-radius: 25px; /* Highly rounded corners */
+    padding: 15px 30px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.org-card-left {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.org-logo-wrapper {
+    width: 90px;
+    height: 90px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9f9f9;
+}
+
+.org-logo-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.org-card-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000;
+    max-width: 500px;
+}
+
+/* Buttons Section */
+.org-card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 100px;
+}
+
+.action-btn {
+    padding: 5px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #333;
+    background: #fff;
+    transition: 0.2s;
+}
+
+.action-btn.view:hover, .action-btn.edit:hover {
+    background: #f0f0f0;
+}
+
+.action-btn.delete {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+}
+
+.action-btn.delete:hover {
+    background: #cc0000;
+}
+
+/* View Modal Specific Styling */
+.view-card-modal {
+    max-width: 500px !important;
+    border-radius: 30px !important;
+    padding: 40px !important;
+    text-align: left;
+}
+
+.view-card-header {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.view-logo-container {
+    width: 120px;
+    height: 120px;
+    border: 2px solid #000;
+    border-radius: 10px;
+    padding: 5px;
+    box-shadow: 5px 5px 0px rgba(0,0,0,0.1);
+}
+
+.view-logo-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.view-title-section h2 {
+    font-size: 24px;
+    margin: 0 0 15px 0;
+    line-height: 1.2;
+}
+
+.view-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    background: #0095ff;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+}
+
+.view-tagline {
+    font-style: italic;
+    font-size: 18px;
+    margin: 20px 0;
+    text-align: center;
+    color: #333;
+}
+
+.view-info-grid {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 18px;
+}
+
+.info-item img {
+    width: 24px;
+    height: 24px;
+}
+
+.view-details-footer-btn {
+    width: 100%;
+    margin-top: 30px;
+    padding: 12px;
+    border: 2px solid #000;
+    background: transparent;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
 @media (max-width: 768px) {
     .dashboard-top {
@@ -425,4 +642,36 @@ textarea {
         width: 100%;
         text-align: center;
     }
+}
+
+#editModal .modal-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+#editModal .form-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#editModal input, 
+#editModal select {
+    text-align: center; /* Centers text inside input boxes */
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    margin: 5px 0;
+}
+
+#editModal .modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
 }

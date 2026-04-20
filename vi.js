@@ -1,13 +1,18 @@
-const organizations = [
-    { id: 1, name: "Pixel Guild", category: "tech", department: "CCIT", memberCount: 150, description: "Digital art and game development community.", logo: "🎮", email: "pixelguild@national-u.edu.ph" },
-    { id: 2, name: "Varsity Titans", category: "sports", department: "None", memberCount: 85, description: "Official university athletics team.", logo: "🏆", email: "titans@national-u.edu.ph" },
-    { id: 3, name: "Coding Society", category: "tech", department: "CCIT", memberCount: 210, description: "Problem solving and software engineering.", logo: "💻", email: "codingsoc@national-u.edu.ph" },
-    { id: 4, name: "Theatre Group", category: "arts", department: "CAH", memberCount: 45, description: "Performing arts and production.", logo: "🎭", email: "theatre@national-u.edu.ph" },
-    { id: 5, name: "Business Leaders", category: "academics", department: "CBA", memberCount: 120, description: "Future entrepreneurship network.", logo: "📈", email: "cba_leaders@national-u.edu.ph" }
-];
+function loadOrganizations() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('nunite_organizations'));
+        // Admin saves with 'contactEmail', viewdetails expects 'email' — normalize
+        if (saved && saved.length > 0) {
+            return saved.map(o => ({ ...o, email: o.email || o.contactEmail || 'contact@national-u.edu.ph' }));
+        }
+    } catch {}
+    return defaultOrganizations;
+}
 
-// Switch to true to see the "Joined/Contact" info
-let isLoggedIn = false; 
+const organizations = loadOrganizations();
+
+// Read login state from localStorage (set by sign.js on login)
+const isLoggedIn = !!localStorage.getItem('userFullName');
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -19,11 +24,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('orgNameAbout').innerText = org.name;
         document.getElementById('orgCategory').innerText = org.category;
         document.getElementById('orgTagline').innerText = `"${org.description}"`;
-        document.getElementById('orgDescription').innerText = org.description;
+        document.getElementById('orgDescription').innerText = org.fullDescription || org.description;
         document.getElementById('orgMemberCount').innerText = org.memberCount;
-        document.getElementById('orgLogo').innerText = org.logo;
         document.getElementById('orgEmail').innerText = org.email;
         document.getElementById('orgEmail').href = `mailto:${org.email}`;
+
+        // Support both admin-uploaded logo images and emoji logos
+        const logoEl = document.getElementById('orgLogo');
+        if (org.logoDataUrl) {
+            logoEl.innerHTML = `<img src="${org.logoDataUrl}" alt="${org.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+            logoEl.style.fontSize = '0';
+        } else {
+            logoEl.innerText = org.logo || '🏫';
+        }
     }
 });
 

@@ -40,7 +40,7 @@
             background-image: linear-gradient(
                 hwb(248 0% 82% / 0.6), 
                 rgba(10, 6, 42, 0.4)
-            ), url('bg1.jpg');
+            ), url('/image/bg1.jpg');
             background-size: cover;
             background-position: center;
             height: 100vh;
@@ -242,7 +242,7 @@
                 </div>
                 <div class="flex items-center gap-4">
                     <span class="text-white text-lg font-light tracking-widest uppercase">National University</span>
-                    <img src="image/imageLogo.png" alt="National University" class="h-12 w-auto object-contain">
+                    <img src="/image/Logo.png" alt="National University" class="h-12 w-auto object-contain">
                 </div>
             </div>
         </div>
@@ -250,8 +250,38 @@
 
     <script>
         // Header Logic
+        function updateAuthDropdown() {
+            const dropdown = document.getElementById('authDropdown');
+            const userFullName = localStorage.getItem('userFullName');
+            const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+            if (userFullName) {
+                const displayName = isAdmin ? 'Admin' : userFullName;
+                dropdown.innerHTML = `
+                    <div class="px-4 py-2 border-b border-slate-100">
+                        <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Signed in as</p>
+                        <p class="text-sm font-bold text-slate-800 truncate">${displayName}</p>
+                    </div>
+                    ${isAdmin ? `<a href="admindash.html" class="block px-4 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition-colors">Dashboard</a>` : ''}
+                    <a href="#" id="navSignOutBtn" class="block px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors">Sign Out</a>
+                `;
+                document.getElementById('navSignOutBtn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    localStorage.removeItem('userFullName');
+                    localStorage.removeItem('isAdmin');
+                    window.location.href = 'sign_in.html';
+                });
+            } else {
+                dropdown.innerHTML = `
+                    <a href="sign_in.html" class="block px-4 py-2 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors">Sign In</a>
+                    <a href="sign_up.html" class="block px-4 py-2 text-sm font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors border-t border-slate-100">Sign Up</a>
+                `;
+            }
+        }
+
         function toggleAuthMenu() {
             const dropdown = document.getElementById('authDropdown');
+            updateAuthDropdown();
             dropdown.classList.toggle('hidden');
             window.onclick = function(event) {
                 if (!event.target.closest('button')) {

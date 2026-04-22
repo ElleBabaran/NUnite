@@ -31,8 +31,9 @@
 
     <div style="width: 1px; height: 24px; background-color: #e2e8f0;"></div>
 
-    <h1 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e1b4b; white-space: nowrap;">
-        Organizations
+    <h1 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e1b4b; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+        Organizations 
+        <span id="orgCategory" style="text-transform: capitalize; color: #000000; font-weight: 400; opacity: 0.7;">Category</span>
     </h1>
 </header>
 </header>
@@ -43,7 +44,6 @@
                 
                 <div class="organization-info">
                     <h2 id="orgName">Loading Organization...</h2>
-                    <div id="orgBadges" style="display: flex; gap: 6px; flex-wrap: wrap; margin: 6px 0 4px 0;"></div>
                     <p id="orgTagline">"Loading description..."</p>
                     <div class="details">
                         <span>
@@ -128,46 +128,5 @@
     </div>
 
     <script src="vi.js"></script>
-    <script>
-        // Inject category + department badges after vi.js loads the org data
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait a tick for vi.js to populate the DOM/data
-            setTimeout(function() {
-                try {
-                    const params = new URLSearchParams(window.location.search);
-                    const id = params.get('id');
-                    const orgs = JSON.parse(localStorage.getItem('nunite_organizations')) || [];
-                    const org = orgs.find(o => String(o.id) === String(id));
-                    if (!org) return;
-
-                    const badgeContainer = document.getElementById('orgBadges');
-                    if (!badgeContainer) return;
-
-                    const categoryColors = {
-                        sports:      { bg: '#dcfce7', color: '#15803d' },
-                        arts:        { bg: '#fce7f3', color: '#be185d' },
-                        tech:        { bg: '#dbeafe', color: '#1d4ed8' },
-                        social:      { bg: '#fef9c3', color: '#a16207' },
-                        academics:   { bg: '#ede9fe', color: '#6d28d9' },
-                        media:       { bg: '#ffedd5', color: '#c2410c' },
-                        publication: { bg: '#f1f5f9', color: '#475569' },
-                    };
-
-                    let html = '';
-
-                    if (org.category && org.category !== 'all') {
-                        const c = categoryColors[org.category] || { bg: '#e0e7ff', color: '#3730a3' };
-                        html += `<span style="padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background:${c.bg}; color:${c.color};">${org.category}</span>`;
-                    }
-
-                    if (org.department && org.department !== 'all' && org.department !== 'None') {
-                        html += `<span style="padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; background:#e0e7ff; color:#3730a3;">${org.department}</span>`;
-                    }
-
-                    badgeContainer.innerHTML = html;
-                } catch(e) { console.error(e); }
-            }, 100);
-        });
-    </script>
 </body>
 </html>

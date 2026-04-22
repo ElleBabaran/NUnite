@@ -35,8 +35,9 @@
                     <div class="stat-card">
                         <h3>Total Organizations</h3>
                         <p id="stat-total-orgs">0</p>
-                        <img src="/image/totorg.png" alt="Organizations" class="stat-icon">
-                    </div>
+                        <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#272789" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4.13a4 4 0 11-8 0 4 4 0 018 0zm6 0a4 4 0 11-2-3.46"/>
+                        </svg>                    </div>
                     <div class="stat-card">
                         <h3>Approved</h3>
                         <p id="stat-approved-orgs">0</p>
@@ -228,6 +229,12 @@
             <span class="close-btn">&times;</span>
             <h3>Add New Event</h3>
             <form id="eventForm">
+                <div class="form-group">
+                    <label for="eventOrg">Organization*</label>
+                    <select id="eventOrg" required>
+                        <option value="">-- Select Organization --</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label for="eventTitle">Event Title</label>
                     <input type="text" id="eventTitle" required>

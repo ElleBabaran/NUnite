@@ -185,6 +185,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- ADD EVENT BUTTON ----
     document.getElementById('addEventBtn')?.addEventListener('click', () => {
         eventForm.reset();
+        const orgs = getOrgs();
+        const select = document.getElementById('eventOrg');
+        if (select) {
+            select.innerHTML = '<option value="">-- Select Organization --</option>';
+            orgs.forEach(org => {
+                const option = document.createElement('option');
+                option.value = org.id;
+                option.textContent = org.name;
+                select.appendChild(option);
+            });
+        }
         eventModal.style.display = 'block';
     });
 
@@ -264,12 +275,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- SAVE EVENT ----
     eventForm?.addEventListener('submit', e => {
         e.preventDefault();
+        const orgSelect = document.getElementById('eventOrg');
+        const selectedOrgName = orgSelect ? orgSelect.options[orgSelect.selectedIndex]?.text : 'Admin';
         const newEvent = {
             id:          Date.now(),
             title:       document.getElementById('eventTitle').value.trim(),
             description: document.getElementById('eventDescription').value.trim(),
             date:        document.getElementById('eventDateTime').value,
-            org:         'Admin',
+            org:         selectedOrgName || 'Admin',
             location:    document.getElementById('eventLocation').value.trim(),
         };
         mockEvents.push(newEvent);

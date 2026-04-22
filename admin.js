@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
             meetingTime:     document.getElementById('meetingTime').value.trim(),
             location:        document.getElementById('location').value.trim(),
             applicationsOpen: document.getElementById('applicationsStatus').checked,
-            approved:        true,
+            approved:        document.getElementById('applicationsStatus').checked,
             logoDataUrl:     logoDataUrl,
         };
 
@@ -265,11 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
     eventForm?.addEventListener('submit', e => {
         e.preventDefault();
         const newEvent = {
-            id:       Date.now(),
-            title:    document.getElementById('eventTitle').value.trim(),
-            date:     document.getElementById('eventDateTime').value,
-            org:      'Admin',
-            location: document.getElementById('eventLocation').value.trim(),
+            id:          Date.now(),
+            title:       document.getElementById('eventTitle').value.trim(),
+            description: document.getElementById('eventDescription').value.trim(),
+            date:        document.getElementById('eventDateTime').value,
+            org:         'Admin',
+            location:    document.getElementById('eventLocation').value.trim(),
         };
         mockEvents.push(newEvent);
         saveEvents();

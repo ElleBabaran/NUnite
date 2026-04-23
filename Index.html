@@ -175,7 +175,20 @@
     </div>
 </div>
 
-    <footer class="w-full">
+<!-- UPCOMING EVENTS SECTION -->
+<div id="events-section" class="bg-[#1e1b4b] py-20">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-10">
+            <h2 class="text-4xl font-extrabold text-white mb-2">Upcoming Events</h2>
+            <p class="text-white/70 text-lg">Stay up to date with the latest organization events</p>
+        </div>
+        <div id="eventsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <div class="col-span-full text-center py-10 text-white/40">
+                <p class="text-xl">No upcoming events yet.</p>
+            </div>
+        </div>
+    </div>
+</div> class="w-full">
         <div class="bg-[#ffcc00] py-10 text-center">
             <p class="text-black font-medium tracking-wide">
                 Copyright <span class="font-bold">2025</span>. All Rights Reserved
@@ -309,11 +322,48 @@
             document.getElementById('stat-total').innerText = data.length;
             const members = data.reduce((acc, curr) => acc + (parseInt(curr.memberCount) || 0), 0);
             document.getElementById('stat-members').innerText = members;
-            // Count events from admin localStorage
+            // Count only APPROVED events
             try {
-                const events = JSON.parse(localStorage.getItem('nunite_events')) || [];
-                document.getElementById('stat-events').innerText = events.length;
+                const events = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                const approvedCount = events.filter(ev => ev.approved).length;
+                document.getElementById('stat-events').innerText = approvedCount;
             } catch { document.getElementById('stat-events').innerText = 0; }
+        }
+
+        function renderEvents() {
+            const grid = document.getElementById('eventsGrid');
+            if (!grid) return;
+            try {
+                const events = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                const approved = events.filter(ev => ev.approved);
+                if (approved.length === 0) {
+                    grid.innerHTML = '<div class="col-span-full text-center py-10 text-white/40"><p class="text-xl">No upcoming events yet.</p></div>';
+                    return;
+                }
+                // Sort by date ascending
+                approved.sort((a, b) => new Date(a.date) - new Date(b.date));
+                grid.innerHTML = approved.map(ev => {
+                    const d     = ev.date ? new Date(ev.date) : null;
+                    const month = d ? d.toLocaleString('default', { month: 'short' }).toUpperCase() : '—';
+                    const day   = d ? d.getDate() : '—';
+                    const time  = d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    return `
+                    <div class="bg-white/10 border border-white/20 rounded-2xl p-6 flex gap-4 items-start hover:bg-white/15 transition-all">
+                        <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-indigo-600 flex flex-col items-center justify-center text-white font-extrabold leading-tight">
+                            <span style="font-size:9px;letter-spacing:1px;">${month}</span>
+                            <span style="font-size:22px;">${day}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-white font-bold text-base leading-tight mb-1">${ev.title}</h3>
+                            <p class="text-white/60 text-xs mb-1">${ev.org}${time ? ' · ' + time : ''}</p>
+                            ${ev.description ? `<p class="text-white/50 text-xs leading-relaxed">${ev.description}</p>` : ''}
+                            ${ev.location ? `<p class="text-indigo-300 text-xs mt-1">📍 ${ev.location}</p>` : ''}
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                grid.innerHTML = '<div class="col-span-full text-center py-10 text-white/40"><p>Could not load events.</p></div>';
+            }
         }
 
         function updateAuthDropdown() {
@@ -376,6 +426,7 @@
 
         // Initialize
         render();
+        renderEvents();
     </script>
 </body>
 </html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leader Dashboard | NUnite</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        /* Member cards — same shape as org-card-horizontal */
+        .member-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border: 1.5px solid #e8eaf6;
+            border-radius: 14px;
+            padding: 14px 20px;
+            margin-bottom: 10px;
+            gap: 14px;
+        }
+        .member-card-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+            min-width: 0;
+        }
+        .member-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #272789, #6366f1);
+            color: #fff;
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .member-name { font-weight: 700; font-size: 14px; color: #1e1b4b; margin: 0 0 2px; }
+        .member-meta { font-size: 12px; color: #888; margin: 0; }
+        .member-card-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-flex; align-items: center;
+            padding: 3px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 700;
+        }
+        .status-badge.pending  { background: #fef9c3; color: #92400e; }
+        .status-badge.approved { background: #dcfce7; color: #166534; }
+        .status-badge.rejected { background: #fee2e2; color: #991b1b; }
+
+        /* Action button variants */
+        .action-btn.approve-btn { background: #22c55e; color: #fff; border: none; }
+        .action-btn.reject-btn  { background: #ef4444; color: #fff; border: none; }
+        .action-btn.reason-btn  { background: #272789; color: #fff; border: none; }
+
+        /* Filter pills */
+        .filter-pills { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .pill {
+            padding: 6px 18px; border-radius: 20px;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            border: 1.5px solid #e0e0f0; background: #fff; color: #888;
+            transition: all .18s;
+        }
+        .pill.active { background: #272789; color: #fff; border-color: #272789; }
+
+        /* Search + filter toolbar */
+        .list-toolbar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+        }
+        .list-toolbar input {
+            padding: 9px 14px; border: 1.5px solid #e0e0f0;
+            border-radius: 9px; font-size: 13px; outline: none;
+            width: 240px; font-family: inherit;
+        }
+        .list-toolbar input:focus { border-color: #6366f1; }
+
+        /* Event cards */
+        .event-card-row {
+            display: flex; align-items: center; gap: 18px;
+            background: #fff; border: 1.5px solid #e8eaf6;
+            border-radius: 14px; padding: 16px 20px; margin-bottom: 10px;
+        }
+        .event-date-pill {
+            width: 52px; height: 52px; border-radius: 12px;
+            background: #272789; color: #fff;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-weight: 800; line-height: 1.1; flex-shrink: 0;
+        }
+        .event-date-pill .ev-month { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
+        .event-date-pill .ev-day   { font-size: 20px; }
+        .event-card-info { flex: 1; }
+        .event-card-info h4 { font-size: 15px; font-weight: 700; margin: 0 0 3px; color: #1e1b4b; }
+        .event-card-info p  { font-size: 12px; color: #888; margin: 0; }
+
+        /* Reason text box inside modal */
+        .reason-text-box {
+            background: #f8f8ff; border: 1.5px solid #e8eaf6;
+            border-radius: 10px; padding: 16px; font-size: 14px;
+            color: #1e1b4b; margin: 14px 0 22px;
+            min-height: 80px; line-height: 1.7;
+        }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 50px 20px; color: #aaa; }
+        .empty-state .empty-icon { font-size: 44px; margin-bottom: 10px; }
+        .empty-state p { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+        .empty-state span { font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="admin-dashboard">
+
+        <!-- HEADER — mirrors admindash exactly -->
+        <header class="dashboard-top">
+            <div class="header-left">
+                <a href="index.html" class="back-link"
+                   style="display:flex;align-items:center;text-decoration:none;color:inherit;">
+                    <img src="/image/back.png" alt="back icon" class="button-icon"
+                         style="height:20px;width:auto;margin-right:8px;margin-bottom:10px;margin-top:-24px;">
+                    <span style="font-weight:600;margin-bottom:9px;margin-top:-24px;">Back</span>
+                </a>
+
+                <div class="admin-top-row">
+                    <div>
+                        <h2>Leader <br> Dashboard</h2>
+                        <p id="leaderOrgSubtitle">Manage your organization</p>
+                    </div>
+                    <button id="leaderSignOutBtn" class="admin-logout-btn">Sign Out</button>
+                </div>
+
+                <div class="header-tabs">
+                    <a href="#" class="tab active" data-section="ld-members">Members</a>
+                    <a href="#" class="tab"         data-section="ld-events">Events</a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+
+            <!-- MEMBERS TAB -->
+            <div id="ld-members" class="content-section active">
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3>Total Members</h3>
+                        <p id="stat-total-members">0</p>
+                        <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                             fill="none" stroke="#272789" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4.13a4 4 0 11-8 0 4 4 0 018 0zm6 0a4 4 0 11-2-3.46"/>
+                        </svg>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pending</h3>
+                        <p id="stat-pending">0</p>
+                        <svg class="stat-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                             fill="none" stroke="#272789" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Approved</h3>
+                        <p id="stat-approved">0</p>
+                        <img src="/image/apr.png" alt="Approved" class="stat-icon">
+                    </div>
+                </div>
+
+                <div class="organization-list-container">
+                    <div class="organization-list">
+                        <div class="dashboard-header">
+                            <div class="header-title"><h2>All Members</h2></div>
+                        </div>
+
+                        <div class="list-toolbar">
+                            <div class="filter-pills">
+                                <div class="pill active" data-filter="all">All</div>
+                                <div class="pill" data-filter="pending">Pending</div>
+                                <div class="pill" data-filter="approved">Approved</div>
+                                <div class="pill" data-filter="rejected">Rejected</div>
+                            </div>
+                            <input type="text" id="memberSearch" placeholder="Search member...">
+                        </div>
+
+                        <div id="memberListBody"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EVENTS TAB -->
+            <div id="ld-events" class="content-section">
+                <div class="event-list-container">
+                    <div class="dashboard-header">
+                        <div class="header-title"><h2>Organization Events</h2></div>
+                        <button class="add-button" id="leaderAddEventBtn">
+                            <span class="icon">+</span> Submit Event
+                        </button>
+                    </div>
+                    <div id="leaderEventStatusMsg" style="margin-bottom:12px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;display:none;"></div>
+                    <div id="leaderEventBody"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- LEADER EVENT SUBMIT MODAL -->
+    <div id="leaderEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeLeaderEventModal">&times;</span>
+            <h3>Submit Event for Approval</h3>
+            <p style="font-size:13px;color:#888;margin-bottom:16px;">Your event will be reviewed by the admin before it appears publicly.</p>
+            <form id="leaderEventForm">
+                <div class="form-group">
+                    <label for="ldEventTitle">Event Title *</label>
+                    <input type="text" id="ldEventTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="ldEventDescription">Description</label>
+                    <textarea id="ldEventDescription"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ldEventDateTime">Date &amp; Time</label>
+                        <input type="datetime-local" id="ldEventDateTime">
+                    </div>
+                    <div class="form-group">
+                        <label for="ldEventLocation">Location</label>
+                        <input type="text" id="ldEventLocation">
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" id="cancelLeaderEventBtn">Cancel</button>
+                    <button type="submit" class="add-btn">Submit for Approval</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="reasonModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeReasonModal">&times;</span>
+            <h3>Join Reason</h3>
+            <p style="font-size:13px;color:#888;margin-top:4px;">
+                Student: <strong id="reasonStudentName"></strong>
+            </p>
+            <div class="reason-text-box" id="reasonText"></div>
+            <div class="modal-buttons">
+                <button type="button" class="cancel-btn" id="reasonRejectBtn">Reject</button>
+                <button type="button" class="add-btn"    id="reasonApproveBtn">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+
+        // ── AUTH GUARD ──
+        const userEmail    = localStorage.getItem('userEmail') || '';
+        const userFullName = localStorage.getItem('userFullName') || 'Leader';
+        const leaders      = JSON.parse(localStorage.getItem('nunite_leaders') || '[]');
+        const myLeader     = leaders.find(l => l.email === userEmail);
+
+        if (!myLeader) {
+            alert('Access denied. You are not assigned as a leader.');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const myOrgId   = myLeader.orgId;
+        const myOrgName = myLeader.orgName;
+
+        document.getElementById('leaderOrgSubtitle').textContent = myOrgName;
+
+        // ── TABS — same pattern as admin.js ──
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', e => {
+                e.preventDefault();
+                const target = tab.dataset.section;
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.content-section').forEach(s => {
+                    s.classList.remove('active');
+                    if (s.id === target) s.classList.add('active');
+                });
+                if (target === 'ld-events') renderEvents();
+            });
+        });
+
+        // ── FILTER PILLS ──
+        let activeFilter = 'all';
+        document.querySelectorAll('.pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                activeFilter = pill.dataset.filter;
+                renderMembers();
+            });
+        });
+
+        document.getElementById('memberSearch').addEventListener('input', renderMembers);
+
+        // ── DATA HELPERS ──
+        function getMembers() {
+            const joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+            return joins.filter(j => j.orgId === myOrgId);
+        }
+        function saveJoin(updated) {
+            let joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+            joins = joins.map(j =>
+                (j.orgId === updated.orgId && j.email === updated.email) ? updated : j
+            );
+            localStorage.setItem('nunite_joins', JSON.stringify(joins));
+        }
+
+        // ── RENDER MEMBERS ──
+        function renderMembers() {
+            const query = document.getElementById('memberSearch').value.toLowerCase();
+            let members = getMembers();
+
+            document.getElementById('stat-total-members').textContent = members.length;
+            document.getElementById('stat-pending').textContent  = members.filter(m => (m.status || 'pending') === 'pending').length;
+            document.getElementById('stat-approved').textContent = members.filter(m => m.status === 'approved').length;
+
+            if (activeFilter !== 'all')
+                members = members.filter(m => (m.status || 'pending') === activeFilter);
+            if (query)
+                members = members.filter(m =>
+                    m.name?.toLowerCase().includes(query) ||
+                    m.email?.toLowerCase().includes(query)
+                );
+
+            const body = document.getElementById('memberListBody');
+
+            if (members.length === 0) {
+                body.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <p>No members found</p>
+                        <span>Try a different filter or search term.</span>
+                    </div>`;
+                return;
+            }
+
+            body.innerHTML = members.map(m => {
+                const status  = m.status || 'pending';
+                const initial = (m.name || 'S')[0].toUpperCase();
+                return `
+                <div class="member-card" data-email="${m.email}">
+                    <div class="member-card-left">
+                        <div class="member-avatar">${initial}</div>
+                        <div>
+                            <p class="member-name">${m.name || 'Unknown'}</p>
+                            <p class="member-meta">${m.email} · ${m.department || 'No dept'}</p>
+                        </div>
+                    </div>
+                    <div class="member-card-actions">
+                        <span class="status-badge ${status}">
+                            ${status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                        <button class="action-btn reason-btn view-reason-btn">View Reason</button>
+                        ${status !== 'approved' ? `<button class="action-btn approve-btn do-approve">Approve</button>` : ''}
+                        ${status !== 'rejected' ? `<button class="action-btn reject-btn do-reject">Reject</button>`  : ''}
+                    </div>
+                </div>`;
+            }).join('');
+
+            body.querySelectorAll('.member-card').forEach(card => {
+                const email = card.dataset.email;
+
+                card.querySelector('.view-reason-btn')?.addEventListener('click', () => {
+                    const m = getMembers().find(x => x.email === email);
+                    if (!m) return;
+                    currentReasonMember = m;
+                    document.getElementById('reasonStudentName').textContent = m.name || m.email;
+                    document.getElementById('reasonText').textContent = m.reason || '(No reason provided.)';
+                    document.getElementById('reasonModal').style.display = 'block';
+                });
+                card.querySelector('.do-approve')?.addEventListener('click', () => {
+                    const m = getMembers().find(x => x.email === email);
+                    if (!m) return;
+                    m.status = 'approved'; saveJoin(m); renderMembers();
+                });
+                card.querySelector('.do-reject')?.addEventListener('click', () => {
+                    const m = getMembers().find(x => x.email === email);
+                    if (!m) return;
+                    m.status = 'rejected'; saveJoin(m); renderMembers();
+                });
+            });
+        }
+
+        // ── REASON MODAL ──
+        let currentReasonMember = null;
+
+        document.getElementById('closeReasonModal').addEventListener('click', () => {
+            document.getElementById('reasonModal').style.display = 'none';
+        });
+        document.getElementById('reasonApproveBtn').addEventListener('click', () => {
+            if (!currentReasonMember) return;
+            currentReasonMember.status = 'approved';
+            saveJoin(currentReasonMember);
+            document.getElementById('reasonModal').style.display = 'none';
+            renderMembers();
+        });
+        document.getElementById('reasonRejectBtn').addEventListener('click', () => {
+            if (!currentReasonMember) return;
+            currentReasonMember.status = 'rejected';
+            saveJoin(currentReasonMember);
+            document.getElementById('reasonModal').style.display = 'none';
+            renderMembers();
+        });
+        window.addEventListener('click', e => {
+            const modal = document.getElementById('reasonModal');
+            if (e.target === modal) modal.style.display = 'none';
+        });
+
+        // ── RENDER EVENTS ──
+        function renderEvents() {
+            const allEvents = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            const orgEvents = allEvents.filter(ev => ev.org === myOrgName);
+            const body      = document.getElementById('leaderEventBody');
+
+            if (orgEvents.length === 0) {
+                body.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📅</div>
+                        <p>No events yet</p>
+                        <span>Click "Submit Event" to propose an event. Admin must approve it before it appears publicly.</span>
+                    </div>`;
+                return;
+            }
+
+            body.innerHTML = orgEvents.map(ev => {
+                const d      = ev.date ? new Date(ev.date) : null;
+                const month  = d ? d.toLocaleString('default', { month: 'short' }) : '—';
+                const day    = d ? d.getDate() : '—';
+                const badge  = ev.approved
+                    ? '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;">✅ Approved</span>'
+                    : '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Pending</span>';
+                return `
+                <div class="event-card-row">
+                    <div class="event-date-pill">
+                        <span class="ev-month">${month}</span>
+                        <span class="ev-day">${day}</span>
+                    </div>
+                    <div class="event-card-info">
+                        <h4>${ev.title} ${badge}</h4>
+                        <p>${ev.description || 'No description.'}</p>
+                        ${ev.location ? `<p style="margin-top:3px;">📍 ${ev.location}</p>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── LEADER EVENT SUBMISSION ──
+        const leaderEventModal    = document.getElementById('leaderEventModal');
+        const leaderEventForm     = document.getElementById('leaderEventForm');
+
+        document.getElementById('leaderAddEventBtn').addEventListener('click', () => {
+            leaderEventForm.reset();
+            leaderEventModal.style.display = 'block';
+        });
+        document.getElementById('closeLeaderEventModal').addEventListener('click', () => {
+            leaderEventModal.style.display = 'none';
+        });
+        document.getElementById('cancelLeaderEventBtn').addEventListener('click', () => {
+            leaderEventModal.style.display = 'none';
+        });
+        window.addEventListener('click', e => {
+            if (e.target === leaderEventModal) leaderEventModal.style.display = 'none';
+        });
+
+        leaderEventForm.addEventListener('submit', e => {
+            e.preventDefault();
+            const title = document.getElementById('ldEventTitle').value.trim();
+            if (!title) { alert('Event title is required.'); return; }
+
+            const newEvent = {
+                id:          Date.now(),
+                title:       title,
+                description: document.getElementById('ldEventDescription').value.trim(),
+                date:        document.getElementById('ldEventDateTime').value,
+                org:         myOrgName,
+                location:    document.getElementById('ldEventLocation').value.trim(),
+                approved:    false,          // pending admin approval
+                createdBy:   'leader',
+            };
+
+            const evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            evs.push(newEvent);
+            localStorage.setItem('nunite_events', JSON.stringify(evs));
+
+            leaderEventModal.style.display = 'none';
+            renderEvents();
+            alert('Event submitted! It will appear publicly once the admin approves it.');
+        });
+
+        // ── SIGN OUT ──
+        document.getElementById('leaderSignOutBtn').addEventListener('click', () => {
+            localStorage.removeItem('userFullName');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'sign_in.html';
+        });
+
+        // ── INIT ──
+        renderMembers();
+
+    })();
+    </script>
+</body>
+</html>

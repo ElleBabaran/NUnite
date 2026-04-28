@@ -61,18 +61,23 @@
             margin: 0 !important;
             width: 100% !important;
             overflow-x: auto !important;
+            background: linear-gradient(135deg, #1e1b4b 0%, #272789 100%) !important;
         }
         .header-tabs .tab {
             padding: 12px 28px !important;
             font-size: 13px !important;
             font-weight: 700 !important;
             white-space: nowrap !important;
-            color: rgba(255,255,255,0.65) !important;
+            color: #fff !important;
             border-bottom: 3px solid transparent !important;
             text-decoration: none !important;
             transition: all .2s !important;
             flex: 1 !important;
             text-align: center !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: transparent !important;
         }
         .header-tabs .tab.active {
             color: #1e1b4b !important;
@@ -102,15 +107,16 @@
         .back-link:hover { color: var(--brand-gold) !important; }
 
         .logo-gradient-text {
-            color: #fff; background: none; -webkit-background-clip: unset; -webkit-text-fill-color: #fff;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #fff !important;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            -webkit-text-fill-color: #fff !important;
             font-weight: 900;
             font-size: 1.5rem;
         }
 
         .header-tabs .tab {
-            color: rgba(255,255,255,0.65);
+            color: #fff;
             border-bottom: 2px solid transparent;
             padding-bottom: 8px;
             font-weight: 600;
@@ -183,7 +189,7 @@
         .cancel-btn { border: 1.5px solid #e0e0f0; border-radius: 10px; font-weight: 700; color: #64748b; }
 
         .dashboard-header h2 { color: var(--brand-navy); font-weight: 800; }
-        .member-name { color: var(--brand-navy) !important; }
+        .member-name { color: #000 !important; }
         .member-avatar { background: linear-gradient(135deg, var(--brand-navy), var(--brand-indigo)); }
 
         .pill.active { background: var(--brand-navy); color: #fff; border-color: var(--brand-navy); }
@@ -228,7 +234,7 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .member-name { font-weight: 700; font-size: 14px; color: #1e1b4b; margin: 0 0 2px; }
+        .member-name { font-weight: 700; font-size: 14px; color: #000 !important; margin: 0 0 2px; }
         .member-meta { font-size: 12px; color: #888; margin: 0; }
         .member-card-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
@@ -285,7 +291,7 @@
         .event-date-pill .ev-month { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
         .event-date-pill .ev-day   { font-size: 20px; }
         .event-card-info { flex: 1; }
-        .event-card-info h4 { font-size: 15px; font-weight: 700; margin: 0 0 3px; color: #1e1b4b; }
+        .event-card-info h4 { font-size: 15px; font-weight: 700; margin: 0 0 3px; color: #000 !important; }
         .event-card-info p  { font-size: 12px; color: #888; margin: 0; }
 
         /* Reason text box inside modal */
@@ -333,7 +339,7 @@
         }
         .ev-accordion-header:hover { background: #ede9fe; }
         .ev-accordion-header-left { display: flex; align-items: center; gap: 12px; }
-        .ev-accordion-title { font-size: 14px; font-weight: 800; color: #1e1b4b; }
+        .ev-accordion-title { font-size: 14px; font-weight: 800; color: #000 !important; }
         .ev-accordion-meta  { font-size: 11px; color: #888; margin-top: 2px; }
         .ev-accordion-pills { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .ev-accordion-chevron {
@@ -657,6 +663,7 @@
         }
 
         document.getElementById('leaderOrgSubtitle').textContent = myOrgName;
+        localStorage.setItem('leaderOrgName', myOrgName);
 
         // ── TABS — same pattern as admin.js ──
         document.querySelectorAll('.tab').forEach(tab => {
@@ -994,6 +1001,7 @@
         document.getElementById('leaderSignOutBtn').addEventListener('click', () => {
             localStorage.removeItem('userFullName');
             localStorage.removeItem('userEmail');
+            localStorage.removeItem('leaderOrgName');
             window.location.href = 'sign_in.html';
         });
 

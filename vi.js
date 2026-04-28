@@ -59,13 +59,32 @@ function checkLogin(action) {
         loginGate.classList.add('hidden');
         content.style.filter = "none";
 
+        // Check if user is already an approved member of this org
+        const allJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+        const userEmail = localStorage.getItem('userEmail') || '';
+        const existingJoin = allJoins.find(j => String(j.orgId) === String(orgId) && j.email === userEmail);
+        const isApprovedMember = existingJoin && existingJoin.status === 'approved';
+        const isPendingMember = existingJoin && (existingJoin.status || 'pending') === 'pending';
+
         if (action === 'join') {
-            content.innerHTML = `
-                <h3 class="info-title">Apply for ${org.name}</h3>
-                <p style="font-size: 13px; color: #64748b;">Tell the officers why you'd like to join.</p>
-                <textarea style="width:100%; height:100px; border:1px solid #ddd; border-radius:10px; margin-top:15px; padding:10px; font-family:inherit;" placeholder="I want to join because..."></textarea>
-                <button onclick="submitApp()" class="modal-btn btn-primary">Submit Application</button>
-            `;
+            if (isApprovedMember) {
+                content.innerHTML = `
+                    <h3 class="info-title">You're Already a Member! ✅</h3>
+                    <p style="font-size: 13px; color: #64748b; margin-top: 12px;">You are already an approved member of <strong>${org.name}</strong>. No need to apply again.</p>
+                `;
+            } else if (isPendingMember) {
+                content.innerHTML = `
+                    <h3 class="info-title">Application Pending ⏳</h3>
+                    <p style="font-size: 13px; color: #64748b; margin-top: 12px;">Your application to <strong>${org.name}</strong> is still being reviewed by the student leader.</p>
+                `;
+            } else {
+                content.innerHTML = `
+                    <h3 class="info-title">Apply for ${org.name}</h3>
+                    <p style="font-size: 13px; color: #64748b;">Tell the officers why you'd like to join.</p>
+                    <textarea style="width:100%; height:100px; border:1px solid #ddd; border-radius:10px; margin-top:15px; padding:10px; font-family:inherit;" placeholder="I want to join because..."></textarea>
+                    <button onclick="submitApp()" class="modal-btn btn-primary">Submit Application</button>
+                `;
+            }
         } else {
             content.innerHTML = `
                 <h3 class="info-title">Contact Information</h3>

@@ -410,8 +410,11 @@
                     const userEmail = localStorage.getItem('userEmail') || '';
                     const isLoggedIn = !!localStorage.getItem('userFullName');
                     const isAdmin = localStorage.getItem('isAdmin') === 'true';
+                    const leaderOrgName = localStorage.getItem('leaderOrgName') || '';
+                    // Hide join button if the user is the leader of the org that created this event
+                    const isLeaderOfThisOrg = leaderOrgName && ev.createdBy === 'leader' && ev.org === leaderOrgName;
                     let joinBtnHtml = '';
-                    if (isLoggedIn && !isAdmin && userEmail) {
+                    if (isLoggedIn && !isAdmin && !isLeaderOfThisOrg && userEmail) {
                         const evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
                         const myEvJoin = evJoins.find(j => String(j.eventId) === String(ev.id) && j.email === userEmail);
                         if (!myEvJoin) {

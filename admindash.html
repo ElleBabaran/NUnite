@@ -53,6 +53,9 @@
             color: #fff; font-weight: 900; font-size: 1.3rem;
             background: none; -webkit-background-clip: unset; -webkit-text-fill-color: #fff;
         }
+        /* Back link style matching leaderdash */
+        .back-link { color: rgba(255,255,255,0.8) !important; }
+        .back-link:hover { color: var(--brand-gold) !important; }
         .header-tabs {
             display: flex !important;
             gap: 0 !important;
@@ -61,18 +64,23 @@
             margin: 0 !important;
             width: 100% !important;
             overflow-x: auto !important;
+            background: linear-gradient(135deg, #1e1b4b 0%, #272789 100%) !important;
         }
         .header-tabs .tab {
             padding: 12px 28px !important;
             font-size: 13px !important;
             font-weight: 700 !important;
             white-space: nowrap !important;
-            color: rgba(255,255,255,0.65) !important;
+            color: #fff !important;
             border-bottom: 3px solid transparent !important;
             text-decoration: none !important;
             transition: all .2s !important;
             flex: 1 !important;
             text-align: center !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: transparent !important;
         }
         .header-tabs .tab.active {
             color: #1e1b4b !important;

@@ -76,6 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const approvedEl = document.getElementById('stat-approved-orgs');
         if (totalEl)    totalEl.textContent    = orgs.length;
         if (approvedEl) approvedEl.textContent = orgs.filter(o => o.approved).length;
+        const totalMembersEl = document.getElementById('stat-total-members');
+        if (totalMembersEl) {
+            const joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+            totalMembersEl.textContent = joins.filter(j => j.status === 'approved').length;
+        }
 
         if (orgs.length === 0) {
             orgContainer.innerHTML = '<div style="text-align:center;padding:40px;color:#888;"><p style="font-size:18px;">No organizations yet.</p><p style="font-size:14px;margin-top:8px;">Click "Add Organization" to get started.</p></div>';
@@ -191,9 +196,32 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         document.querySelectorAll('.delete-org').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', async e => {
                 if (!confirm('Delete this organization? This cannot be undone.')) return;
                 const id = parseInt(e.target.closest('.org-card-horizontal').dataset.id);
+                // Remove leader from Supabase for this org
+                try {
+                    await supabaseAdmin.from('leaders').delete().eq('org_id', id);
+                } catch(err) { console.warn('Could not remove leader from Supabase:', err); }
+                // Remove all join requests for this org
+                try {
+                    const joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+                    localStorage.setItem('nunite_joins', JSON.stringify(joins.filter(j => String(j.orgId) !== String(id))));
+                } catch(err) {}
+                // Remove all events for this org
+                try {
+                    const org = getOrgs().find(o => o.id === id);
+                    if (org) {
+                        const evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                        const deletedEventIds = evs.filter(ev => ev.org === org.name).map(ev => String(ev.id));
+                        localStorage.setItem('nunite_events', JSON.stringify(evs.filter(ev => ev.org !== org.name)));
+                        // Also remove event join requests for those events
+                        if (deletedEventIds.length > 0) {
+                            const evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+                            localStorage.setItem('nunite_event_joins', JSON.stringify(evJoins.filter(j => !deletedEventIds.includes(String(j.eventId)))));
+                        }
+                    }
+                } catch(err) {}
                 saveOrgs(getOrgs().filter(o => o.id !== id));
                 renderOrgs();
             });
@@ -236,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!org) return;
         document.getElementById('viewOrgName').textContent     = org.name;
         document.getElementById('viewOrgTagline').textContent  = org.description || '';
-        document.getElementById('viewOrgMembers').textContent  = (org.memberCount || 0) + ' members';
+        document.getElementById('viewOrgMembers').textContent  = (() => { const joins = JSON.parse(localStorage.getItem('nunite_joins')||'[]'); return joins.filter(j=>j.orgId==id&&j.status==='approved').length; })() + ' members';
         document.getElementById('viewOrgEmail').textContent    = org.email || org.contactEmail || 'N/A';
         document.getElementById('viewOrgLocation').textContent = org.location || 'N/A';
         const logoEl = document.getElementById('viewOrgLogo');
@@ -265,8 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('contactPerson').value        = org.contactPerson   || '';
         document.getElementById('contactEmail').value         = org.contactEmail    || '';
         document.getElementById('website').value              = org.website         || '';
-        document.getElementById('memberCount').value          = org.memberCount     || '';
-        document.getElementById('meetingTime').value          = org.meetingTime     || '';
         document.getElementById('location').value             = org.location        || '';
         document.getElementById('applicationsStatus').checked = org.applicationsOpen !== false;
         const preview = document.getElementById('logo-preview');
@@ -330,7 +356,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="student-avatar">${name[0].toUpperCase()}</div>
                     <div>
                         <p class="student-name">${name}</p>
-                        <p class="student-email">${u.email}</p>
                         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;">
                             ${isLeaderHere      ? '<span class="leader-badge current">Current Leader</span>' : ''}
                             ${isLeaderElsewhere ? '<span class="leader-badge other">Leader of another org</span>' : ''}
@@ -469,8 +494,8 @@ document.addEventListener('DOMContentLoaded', () => {
             contactEmail:     document.getElementById('contactEmail').value.trim(),
             email:            document.getElementById('contactEmail').value.trim(),
             website:          document.getElementById('website').value.trim(),
-            memberCount:      parseInt(document.getElementById('memberCount').value) || 0,
-            meetingTime:      document.getElementById('meetingTime').value.trim(),
+            memberCount:      0,
+            meetingTime:      '',
             location:         document.getElementById('location').value.trim(),
             applicationsOpen: document.getElementById('applicationsStatus').checked,
             approved:         document.getElementById('applicationsStatus').checked,
@@ -551,6 +576,18 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('isAdmin');
         window.location.href = 'sign_in.html';
     });
+
+    // ---- ADMIN BELL ----
+    function updateAdminBell() {
+        const bell  = document.getElementById('adminNotifBell');
+        const badge = document.getElementById('adminNotifBadge');
+        if (!bell) return;
+        const evs     = getEvents();
+        const pending = evs.filter(ev => !ev.approved && ev.rejected !== true).length;
+        bell.style.display  = 'block';
+        badge.textContent   = pending > 9 ? '9+' : pending;
+        badge.style.display = pending > 0 ? 'flex' : 'none';
+    }
 
     // ---- INIT ----
     renderOrgs();

@@ -5,6 +5,196 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leader Dashboard | NUnite</title>
     <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ── Leader Dashboard Header & Layout Fixes ── */
+        .dashboard-top {
+            padding: 0 !important;
+            overflow: visible !important;
+            width: 100% !important;
+        }
+        .header-left {
+            padding: 0 !important;
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        /* Top bar: back link full width */
+        .ld-top-bar {
+            padding: 14px 28px 0 28px;
+            display: flex;
+            align-items: center;
+        }
+        /* Middle row: brand+title on left, bell+signout on far right */
+        .admin-top-row {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 16px !important;
+            flex-wrap: nowrap !important;
+            padding: 10px 28px 12px 28px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        .admin-top-row h2 {
+            font-size: 1.5rem !important;
+            line-height: 1.2 !important;
+            margin: 2px 0 2px !important;
+            font-weight: 800 !important;
+            color: #000 !important;
+        }
+        .admin-top-row p {
+            color: rgba(0,0,0,0.55) !important;
+            font-size: 13px !important;
+            margin: 0 !important;
+        }
+        .nunite-brand span.logo-gradient-text {
+            font-size: 1.3rem !important;
+        }
+        /* Tabs — left-aligned, full width, spread evenly */
+        .header-tabs {
+            display: flex !important;
+            gap: 0 !important;
+            border-top: 1px solid rgba(255,255,255,0.15) !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+        }
+        .header-tabs .tab {
+            padding: 12px 28px !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            white-space: nowrap !important;
+            color: rgba(255,255,255,0.65) !important;
+            border-bottom: 3px solid transparent !important;
+            text-decoration: none !important;
+            transition: all .2s !important;
+            flex: 1 !important;
+            text-align: center !important;
+        }
+        .header-tabs .tab.active {
+            color: #1e1b4b !important;
+            background: #fff !important;
+            border-bottom-color: transparent !important;
+            border-radius: 0 !important;
+            font-weight: 800 !important;
+        }
+        .header-tabs .tab:hover { color: #fff !important; }
+        /* ── NUnite Index Palette Override for Leader Dashboard ── */
+        :root {
+            --brand-navy: #1e1b4b;
+            --brand-gold: #FFD700;
+            --brand-indigo: #6366f1;
+            --brand-purple: #7c3aed;
+        }
+        body { font-family: 'Poppins', sans-serif; background: #f1f5f9; }
+
+        .dashboard-top {
+            background: linear-gradient(135deg, var(--brand-navy) 0%, #272789 100%);
+            border-bottom: 3px solid var(--brand-gold);
+            box-shadow: 0 4px 24px rgba(30,27,75,0.18);
+        }
+        .dashboard-top h2 { color: #fff; font-weight: 800; font-size: 1.6rem; line-height: 1.15; }
+        .dashboard-top p  { color: rgba(255,255,255,0.7); font-size: 13px; }
+        .back-link { color: rgba(255,255,255,0.8) !important; }
+        .back-link:hover { color: var(--brand-gold) !important; }
+
+        .logo-gradient-text {
+            color: #fff; background: none; -webkit-background-clip: unset; -webkit-text-fill-color: #fff;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+            font-size: 1.5rem;
+        }
+
+        .header-tabs .tab {
+            color: rgba(255,255,255,0.65);
+            border-bottom: 2px solid transparent;
+            padding-bottom: 8px;
+            font-weight: 600;
+            transition: all .2s;
+        }
+        .header-tabs .tab:hover { color: #fff; background: rgba(255,255,255,0.1); }
+        .header-tabs .tab.active { color: #1e1b4b; background: #fff; border-bottom-color: transparent; }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1.5px solid #e8eaf6;
+            box-shadow: 0 2px 12px rgba(99,102,241,0.06);
+            transition: transform .2s, box-shadow .2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.12); }
+        .stat-card h3 { color: #000 !important; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card p  { color: var(--brand-navy); font-size: 2rem; font-weight: 800; }
+        .dashboard-header h2 { color: #000 !important; font-weight: 800; }
+        .organization-list h2, .event-list-container h2 { color: #000 !important; }
+
+        .org-card-horizontal, .member-card, .event-card-row, .ev-accordion {
+            background: #fff;
+            border-radius: 14px;
+            border: 1.5px solid #e8eaf6;
+            box-shadow: 0 2px 8px rgba(99,102,241,0.05);
+            transition: box-shadow .2s;
+        }
+        .org-card-horizontal:hover, .member-card:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.12); }
+
+        .action-btn {
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 6px 14px;
+            border: 1.5px solid #e0e0f0;
+            background: #f8f8ff;
+            color: var(--brand-navy);
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .action-btn:hover { background: var(--brand-navy); color: #fff; border-color: var(--brand-navy); }
+        .action-btn.approve-btn { background: #22c55e; color: #fff; border-color: #22c55e; }
+        .action-btn.reject-btn  { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .action-btn.reason-btn  { background: var(--brand-navy); color: #fff; border-color: var(--brand-navy); }
+
+        .add-button {
+            background: linear-gradient(135deg, var(--brand-indigo), var(--brand-purple));
+            color: #fff; border: none; border-radius: 10px; font-weight: 700;
+            padding: 10px 20px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+            transition: opacity .15s, transform .15s;
+        }
+        .add-button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .admin-logout-btn {
+            background: rgba(255,255,255,0.15);
+            color: #fff; border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 8px; font-weight: 700; padding: 7px 16px;
+            cursor: pointer; transition: background .15s;
+        }
+        .admin-logout-btn:hover { background: rgba(255,255,255,0.25); }
+
+        .modal-content { border-radius: 20px; border-top: 4px solid var(--brand-gold); }
+        .modal-content h3 { color: var(--brand-navy); font-weight: 800; }
+        .add-btn {
+            background: linear-gradient(135deg, var(--brand-indigo), var(--brand-purple));
+            border-radius: 10px; font-weight: 700;
+        }
+        .cancel-btn { border: 1.5px solid #e0e0f0; border-radius: 10px; font-weight: 700; color: #64748b; }
+
+        .dashboard-header h2 { color: var(--brand-navy); font-weight: 800; }
+        .member-name { color: var(--brand-navy) !important; }
+        .member-avatar { background: linear-gradient(135deg, var(--brand-navy), var(--brand-indigo)); }
+
+        .pill.active { background: var(--brand-navy); color: #fff; border-color: var(--brand-navy); }
+        .pill:hover { border-color: var(--brand-indigo); color: var(--brand-indigo); }
+
+        .event-date-pill { background: linear-gradient(135deg, var(--brand-navy), var(--brand-indigo)); }
+
+        .nunite-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+        .ev-accordion-header { background: #f8f8ff; }
+        .ev-accordion-header:hover { background: #ede9fe; }
+    </style>
     <style>
         /* Member cards — same shape as org-card-horizontal */
         .member-card {
@@ -164,34 +354,39 @@
         <!-- HEADER — mirrors admindash exactly -->
         <header class="dashboard-top">
             <div class="header-left">
-                <a href="index.html" class="back-link"
-                   style="display:flex;align-items:center;text-decoration:none;color:inherit;">
-                    <img src="/image/back.png" alt="back icon" class="button-icon"
-                         style="height:20px;width:auto;margin-right:8px;margin-bottom:10px;margin-top:-24px;">
-                    <span style="font-weight:600;margin-bottom:9px;margin-top:-24px;">Back</span>
-                </a>
 
-                <div class="admin-top-row">
+                <!-- Back link row -->
+                <div style="padding:14px 28px 0;">
+                    <a href="index.html" style="display:flex;align-items:center;text-decoration:none;color:rgba(255,255,255,0.8);font-weight:600;font-size:13px;">
+                        <img src="/image/back.png" alt="back" style="height:16px;width:auto;margin-right:6px;">
+                        <span>Back</span>
+                    </a>
+                </div>
+
+                <!-- Title row: brand/title LEFT — bell+signout FAR RIGHT -->
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 28px 14px;width:100%;box-sizing:border-box;">
                     <div>
-                        <h2>Leader <br> Dashboard</h2>
-                        <p id="leaderOrgSubtitle">Manage your organization</p>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <div id="leaderNotifBell" style="position:relative;display:none;">
-                            <button id="leaderNotifBtn" style="width:40px;height:40px;border-radius:50%;background:#272789;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">
-                                🔔
-                            </button>
-                            <span id="leaderNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;pointer-events:none;"></span>
+                        <div class="nunite-brand">
+                            <span class="logo-gradient-text">NUnite</span>
+                            <span style="color:rgba(255,255,255,0.4);font-size:20px;">·</span>
                         </div>
+                        <h2 style="color:#fff;font-weight:800;font-size:1.45rem;margin:2px 0 2px;line-height:1.2;">Leader Dashboard</h2>
+                        <p id="leaderOrgSubtitle" style="color:rgba(255,255,255,0.65);font-size:13px;margin:0;"></p>
+                    </div>
+
+                    <!-- Sign Out pinned to right edge -->
+                    <div style="display:flex;align-items:center;gap:12px;">
                         <button id="leaderSignOutBtn" class="admin-logout-btn">Sign Out</button>
                     </div>
                 </div>
 
+                <!-- Tabs — spread full width evenly -->
                 <div class="header-tabs">
                     <a href="#" class="tab active" data-section="ld-members">Members</a>
                     <a href="#" class="tab"         data-section="ld-events">Events</a>
                     <a href="#" class="tab"         data-section="ld-attendees">Event Attendees <span id="attendeeTabBadge" style="display:none;background:#ef4444;color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"></span></a>
                 </div>
+
             </div>
         </header>
 
@@ -382,16 +577,41 @@
     </div>
 
     <div id="reasonModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width:480px;">
             <span class="close-btn" id="closeReasonModal">&times;</span>
-            <h3>Join Reason</h3>
-            <p style="font-size:13px;color:#888;margin-top:4px;">
-                Student: <strong id="reasonStudentName"></strong>
-            </p>
-            <div class="reason-text-box" id="reasonText"></div>
-            <div class="modal-buttons">
-                <button type="button" class="cancel-btn" id="reasonRejectBtn">Reject</button>
-                <button type="button" class="add-btn"    id="reasonApproveBtn">Approve</button>
+            <h3 style="color:#1e1b4b;font-weight:800;margin-bottom:2px;">Student Application</h3>
+            <p style="font-size:12px;color:#888;margin-bottom:14px;">Review the application and accept or reject the student.</p>
+
+            <!-- Student info card -->
+            <div style="display:flex;align-items:center;gap:14px;padding:14px;background:#f8f8ff;border-radius:12px;border:1.5px solid #e8eaf6;margin-bottom:14px;">
+                <div id="reasonStudentAvatar" style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#1e1b4b,#6366f1);color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">S</div>
+                <div style="min-width:0;">
+                    <p id="reasonStudentName" style="font-weight:800;font-size:15px;color:#1e1b4b;margin:0 0 2px;"></p>
+                    <p id="reasonStudentEmail" style="font-size:12px;color:#888;margin:0;"></p>
+                    <p id="reasonStudentDept" style="font-size:11px;color:#6366f1;font-weight:600;margin:2px 0 0;"></p>
+                </div>
+            </div>
+
+            <!-- Applied to -->
+            <p style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Application to</p>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#ede9fe;border-radius:8px;margin-bottom:14px;">
+                <span style="font-size:15px;">🏫</span>
+                <span id="reasonOrgName" style="font-size:13px;font-weight:700;color:#1e1b4b;"></span>
+            </div>
+
+            <!-- Reason -->
+            <p style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Reason for joining</p>
+            <div class="reason-text-box" id="reasonText" style="min-height:80px;"></div>
+
+            <!-- Current status -->
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
+                <span style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:1px;">Status:</span>
+                <span id="reasonCurrentStatus"></span>
+            </div>
+
+            <div class="modal-buttons" style="gap:10px;">
+                <button type="button" class="cancel-btn" id="reasonRejectBtn" style="background:#ef4444;color:#fff;border-color:#ef4444;flex:1;">❌ Reject</button>
+                <button type="button" class="add-btn"    id="reasonApproveBtn" style="flex:1;">✅ Approve</button>
             </div>
         </div>
     </div>
@@ -428,6 +648,14 @@
         const myOrgId   = myLeader.org_id;
         const myOrgName = myLeader.org_name;
 
+        // ── ORG EXISTENCE CHECK — redirect if org was deleted by admin ──
+        const allOrgs = JSON.parse(localStorage.getItem('nunite_organizations') || '[]');
+        const orgStillExists = allOrgs.some(o => String(o.id) === String(myOrgId));
+        if (!orgStillExists) {
+            window.location.href = 'index.html';
+            return;
+        }
+
         document.getElementById('leaderOrgSubtitle').textContent = myOrgName;
 
         // ── TABS — same pattern as admin.js ──
@@ -461,12 +689,12 @@
         // ── DATA HELPERS ──
         function getMembers() {
             const joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-            return joins.filter(j => j.orgId === myOrgId);
+            return joins.filter(j => String(j.orgId) === String(myOrgId));
         }
         function saveJoin(updated) {
             let joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
             joins = joins.map(j =>
-                (j.orgId === updated.orgId && j.email === updated.email) ? updated : j
+                (String(j.orgId) === String(updated.orgId) && j.email === updated.email) ? updated : j
             );
             localStorage.setItem('nunite_joins', JSON.stringify(joins));
         }
@@ -530,8 +758,17 @@
                     const m = getMembers().find(x => x.email === email);
                     if (!m) return;
                     currentReasonMember = m;
-                    document.getElementById('reasonStudentName').textContent = m.name || m.email;
-                    document.getElementById('reasonText').textContent = m.reason || '(No reason provided.)';
+                    const initial = (m.name || 'S')[0].toUpperCase();
+                    document.getElementById('reasonStudentAvatar').textContent = initial;
+                    document.getElementById('reasonStudentName').textContent  = m.name  || m.email || 'Unknown';
+                    document.getElementById('reasonStudentEmail').textContent = m.email || '';
+                    document.getElementById('reasonStudentDept').textContent  = m.department ? `Department: ${m.department}` : '';
+                    document.getElementById('reasonOrgName').textContent      = myOrgName;
+                    document.getElementById('reasonText').textContent         = m.reason || '(No reason provided.)';
+                    const status = m.status || 'pending';
+                    const statusColors = { pending:'#fef9c3;color:#92400e', approved:'#dcfce7;color:#166534', rejected:'#fee2e2;color:#991b1b' };
+                    const statusLabels = { pending:'⏳ Pending', approved:'✅ Approved', rejected:'❌ Rejected' };
+                    document.getElementById('reasonCurrentStatus').innerHTML = `<span style="padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;background:${statusColors[status]||statusColors.pending}">${statusLabels[status]||status}</span>`;
                     document.getElementById('reasonModal').style.display = 'block';
                 });
                 card.querySelector('.do-approve')?.addEventListener('click', () => {
@@ -760,29 +997,14 @@
             window.location.href = 'sign_in.html';
         });
 
-        // ── LEADER NOTIFICATION BELL ──
-        function updateLeaderBell() {
-            const joins        = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-            const pendingCount = joins.filter(j => j.orgId === myOrgId && (j.status || 'pending') === 'pending').length;
-            const bell  = document.getElementById('leaderNotifBell');
-            const badge = document.getElementById('leaderNotifBadge');
-            const btn   = document.getElementById('leaderNotifBtn');
-            if (!bell) return;
-            bell.style.display = 'block';
-            badge.textContent   = pendingCount > 9 ? '9+' : pendingCount;
-            badge.style.display = pendingCount > 0 ? 'flex' : 'none';
-            btn.onclick = () => {
-                // Switch to Members tab and filter to Pending
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelector('[data-section="ld-members"]').classList.add('active');
-                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-                document.getElementById('ld-members').classList.add('active');
-                document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-                document.querySelector('.pill[data-filter="pending"]').classList.add('active');
-                activeFilter = 'pending';
-                renderMembers();
-            };
-        }
+        // ── LEADER NOTIFICATION BELL — events approved/rejected only ──
+        function updateLeaderBell() { /* bell removed */ }
+
+        window.markLeaderEventsSeen = function() {
+            let evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            evs = evs.map(ev => ev.org === myOrgName ? { ...ev, _leaderSeen: true } : ev);
+            localStorage.setItem('nunite_events', JSON.stringify(evs));
+        };
 
         // ── RENDER ATTENDEES (accordion per event) ──
         function renderAttendees() {
@@ -836,9 +1058,9 @@
                         const status  = j.status || 'pending';
                         const initial = (j.name || j.email || '?')[0].toUpperCase();
                         const isMember = allOrgJoins.some(oj =>
-                            oj.orgId === myOrgId && oj.email === j.email && oj.status === 'approved');
+                            String(oj.orgId) === String(myOrgId) && oj.email === j.email && oj.status === 'approved');
                         const isPendingMember = allOrgJoins.some(oj =>
-                            oj.orgId === myOrgId && oj.email === j.email && (oj.status || 'pending') === 'pending');
+                            String(oj.orgId) === String(myOrgId) && oj.email === j.email && (oj.status || 'pending') === 'pending');
 
                         const memberPill = isMember
                             ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;">✅ Org Member</span>`
@@ -926,10 +1148,10 @@
                     const email = btn.dataset.email;
                     const name  = btn.dataset.name || email;
                     const orgJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-                    const exists   = orgJoins.some(j => j.orgId === myOrgId && j.email === email);
+                    const exists   = orgJoins.some(j => String(j.orgId) === String(myOrgId) && j.email === email);
                     if (exists) { alert(`${name} already has a membership request.`); renderAttendees(); return; }
                     orgJoins.push({
-                        orgId: myOrgId, orgName: myOrgName, email, name,
+                        orgId: String(myOrgId), orgName: myOrgName, email, name,
                         status: 'pending',
                         reason: 'Added by leader from event attendee request.',
                         joinedAt: new Date().toISOString()
@@ -963,7 +1185,6 @@
         // ── INIT ──
         renderMembers();
         renderAttendees();
-        updateLeaderBell();
 
     })();
     </script>

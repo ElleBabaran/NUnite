@@ -5,39 +5,195 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ── Admin Dashboard UI — matches Leader Dashboard ── */
+        :root {
+            --brand-navy: #1e1b4b;
+            --brand-gold: #FFD700;
+            --brand-indigo: #6366f1;
+            --brand-purple: #7c3aed;
+        }
+        body { font-family: 'Poppins', sans-serif; }
+        .dashboard-top {
+            padding: 0 !important;
+            overflow: visible !important;
+            width: 100% !important;
+            background: linear-gradient(135deg, var(--brand-navy) 0%, #272789 100%) !important;
+            border-bottom: 3px solid var(--brand-gold) !important;
+            box-shadow: 0 4px 24px rgba(30,27,75,0.18) !important;
+        }
+        .header-left {
+            padding: 0 !important;
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        .admin-top-row {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 16px !important;
+            flex-wrap: nowrap !important;
+            padding: 10px 28px 14px 28px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            margin-bottom: 0 !important;
+        }
+        .admin-top-row h2 {
+            font-size: 1.45rem !important;
+            line-height: 1.2 !important;
+            margin: 2px 0 2px !important;
+            color: #fff !important;
+            font-weight: 800 !important;
+        }
+        .admin-top-row p { margin: 0 !important; color: rgba(255,255,255,0.65) !important; font-size: 13px !important; }
+        .nunite-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+        .logo-gradient-text {
+            color: #fff; font-weight: 900; font-size: 1.3rem;
+            background: none; -webkit-background-clip: unset; -webkit-text-fill-color: #fff;
+        }
+        .header-tabs {
+            display: flex !important;
+            gap: 0 !important;
+            border-top: 1px solid rgba(255,255,255,0.15) !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            overflow-x: auto !important;
+        }
+        .header-tabs .tab {
+            padding: 12px 28px !important;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            white-space: nowrap !important;
+            color: rgba(255,255,255,0.65) !important;
+            border-bottom: 3px solid transparent !important;
+            text-decoration: none !important;
+            transition: all .2s !important;
+            flex: 1 !important;
+            text-align: center !important;
+        }
+        .header-tabs .tab.active {
+            color: #1e1b4b !important;
+            background: #fff !important;
+            border-bottom-color: transparent !important;
+            border-radius: 0 !important;
+            font-weight: 800 !important;
+        }
+        .header-tabs .tab:hover { color: #fff !important; background: rgba(255,255,255,0.1) !important; }
+        .admin-logout-btn {
+            background: rgba(255,255,255,0.15);
+            color: #fff; border: 1.5px solid rgba(255,255,255,0.3);
+            border-radius: 8px; font-weight: 700; padding: 7px 16px;
+            cursor: pointer; transition: background .15s;
+        }
+        .admin-logout-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* Card readability fixes */
+        .org-card-horizontal {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 14px 18px !important;
+            gap: 14px !important;
+            flex-wrap: wrap !important;
+            border-radius: 12px !important;
+            margin-bottom: 10px !important;
+            border: 1.5px solid #e8eaf6 !important;
+            background: #fff !important;
+        }
+        .org-card-left {
+            display: flex !important;
+            align-items: center !important;
+            gap: 14px !important;
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+        .org-card-title {
+            font-size: 15px !important;
+            font-weight: 800 !important;
+            color: #1e1b4b !important;
+            margin: 0 0 3px !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+        }
+        .org-card-actions {
+            display: flex !important;
+            gap: 8px !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+        }
+        .action-btn {
+            padding: 7px 14px !important;
+            border-radius: 8px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            cursor: pointer !important;
+            white-space: nowrap !important;
+        }
+        /* dashboard-header title fix */
+        .dashboard-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+            margin-bottom: 16px !important;
+        }
+        .dashboard-header h2 {
+            font-size: 1.2rem !important;
+            font-weight: 800 !important;
+            color: #1e1b4b !important;
+            margin: 0 !important;
+        }
+    </style>
 </head>
 <body>
     <div class="admin-dashboard">
         <header class="dashboard-top">
-        <div class="header-left">
-            <a href="index.html" class="back-link" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-            <img src="/image/back.png" alt="back icon" class="button-icon" style="height: 20px; width: auto; margin-right: 8px; margin-bottom: 10px; margin-top: -24px;"> 
-            <span style="font-weight: 600; margin-bottom: 9px; margin-top: -24px;">Back</span>
-        </a>
-            
-            <div class="admin-top-row">
-                <div>
-                    <h2>Admin <br> Dashboard</h2>
-                    <p>Manage student organizations</p>
+            <div class="header-left">
+
+                <!-- Back link row -->
+                <div style="padding:14px 28px 0;">
+                    <a href="index.html" class="back-link" style="display:flex;align-items:center;text-decoration:none;color:rgba(255,255,255,0.8);font-weight:600;font-size:13px;">
+                        <img src="/image/back.png" alt="back icon" style="height:16px;width:auto;margin-right:6px;">
+                        <span>Back</span>
+                    </a>
                 </div>
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <!-- Admin Notification Bell -->
-                    <div id="adminNotifBell" style="position:relative;display:none;">
-                        <button onclick="document.querySelector('#events.content-section') ? (document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')), document.querySelector('[data-section=events]').classList.add('active'), document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active')), document.getElementById('events').classList.add('active')) : null; document.getElementById('events').scrollIntoView({behavior:'smooth'});"
-                            style="width:40px;height:40px;border-radius:50%;background:#272789;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;position:relative;">
-                            🔔
-                        </button>
-                        <span id="adminNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;pointer-events:none;"></span>
+
+                <!-- Title row: brand/title LEFT — bell+signout FAR RIGHT -->
+                <div class="admin-top-row">
+                    <div>
+                        <div class="nunite-brand">
+                            <span class="logo-gradient-text">NUnite</span>
+                            <span style="color:rgba(255,255,255,0.4);font-size:20px;">·</span>
+                        </div>
+                        <h2>Admin Dashboard</h2>
+                        <p>Manage student organizations</p>
                     </div>
-                    <button id="adminSignOutBtn" class="admin-logout-btn">Sign Out</button>
+                    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+                        <!-- Admin Notification Bell -->
+                        <div id="adminNotifBell" style="position:relative;display:none;">
+                            <button onclick="document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.querySelector('[data-section=events]').classList.add('active'); document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active')); document.getElementById('events').classList.add('active');"
+                                style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">
+                                🔔
+                            </button>
+                            <span id="adminNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;pointer-events:none;"></span>
+                        </div>
+                        <button id="adminSignOutBtn" class="admin-logout-btn">Sign Out</button>
+                    </div>
                 </div>
+
+                <!-- Tabs — spread full width evenly -->
+                <div class="header-tabs">
+                    <a href="#" class="tab active" data-section="organizations">Organizations</a>
+                    <a href="#" class="tab" data-section="events">Events</a>
+                </div>
+
             </div>
-            <div class="header-tabs">
-                <a href="#" class="tab active" data-section="organizations">Organizations</a>
-                <a href="#" class="tab" data-section="events">Events</a>
-            </div>
-        </div>
-    </header>
+        </header>
 
         <main class="main-content">
             <div id="organizations" class="content-section active">

@@ -25,7 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('orgCategory').innerText = org.category;
         document.getElementById('orgTagline').innerText = `"${org.description}"`;
         document.getElementById('orgDescription').innerText = org.fullDescription || org.description;
-        document.getElementById('orgMemberCount').innerText = org.memberCount;
+        // Count approved members from joins only (no manual base count)
+        const allJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+        const approvedCount = allJoins.filter(j => String(j.orgId) === String(orgId) && j.status === 'approved').length;
+        document.getElementById('orgMemberCount').innerText = approvedCount;
         document.getElementById('orgEmail').innerText = org.email;
         document.getElementById('orgEmail').href = `mailto:${org.email}`;
 
@@ -93,8 +96,37 @@ function checkLogin(action) {
 }
 
 function submitApp() {
-    alert("Application Received! The organization will contact you via your NU email.");
-    closeModal();
+    const userFullName = localStorage.getItem('userFullName');
+    const userEmail = localStorage.getItem('userEmail');
+    
+    if (!userFullName) {
+        alert("Please sign in first!");
+        return;
+    }
+
+    const application = {
+        id: Date.now(),
+        orgId: String(new URLSearchParams(window.location.search).get('id')),
+        orgName: document.getElementById('orgName').innerText,
+        name: userFullName,
+        email: userEmail,
+        status: 'pending',
+        reason: document.querySelector('textarea') ? document.querySelector('textarea').value.trim() : '',
+        appliedAt: new Date().toISOString()
+    };
+
+    const existingJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+    
+    // Check kung nakapag-apply na para hindi doble
+    const alreadyApplied = existingJoins.some(j => j.orgId == application.orgId && j.email === userEmail);
+    if (alreadyApplied) {
+        alert("You have already applied for this organization.");
+        return;
+    }
+
+    existingJoins.push(application);
+    localStorage.setItem('nunite_joins', JSON.stringify(existingJoins));
+    alert("Application sent to Student Leader!");
 }
 
 function closeModal() {

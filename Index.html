@@ -415,7 +415,7 @@
                         const evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
                         const myEvJoin = evJoins.find(j => String(j.eventId) === String(ev.id) && j.email === userEmail);
                         if (!myEvJoin) {
-                            joinBtnHtml = `<button onclick="attendEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')" style="margin-top:8px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;">🎟️ Attend Event</button>`;
+                            joinBtnHtml = `<button onclick="attendEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')" style="margin-top:8px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;">Join</button>`;
                         } else if ((myEvJoin.status || 'pending') === 'pending') {
                             joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;">⏳ Request Pending</span>`;
                         } else if (myEvJoin.status === 'approved') {

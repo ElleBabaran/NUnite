@@ -675,3 +675,46 @@ textarea {
     gap: 15px;
     margin-top: 20px;
 }
+
+/* Modal Visibility */
+.modal.is-open {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Student List Styling */
+.student-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.student-item:hover {
+    background-color: #f8fafc;
+}
+
+.student-info h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #1e1b4b;
+}
+
+.student-info p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #888;
+}
+
+.assign-confirm-btn {
+    background: #272789;
+    color: white;
+    border: none;
+    padding: 7px 16px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+}

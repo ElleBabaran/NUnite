@@ -20,7 +20,17 @@
                     <h2>Admin <br> Dashboard</h2>
                     <p>Manage student organizations</p>
                 </div>
-                <button id="adminSignOutBtn" class="admin-logout-btn">Sign Out</button>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <!-- Admin Notification Bell -->
+                    <div id="adminNotifBell" style="position:relative;display:none;">
+                        <button onclick="document.querySelector('#events.content-section') ? (document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')), document.querySelector('[data-section=events]').classList.add('active'), document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active')), document.getElementById('events').classList.add('active')) : null; document.getElementById('events').scrollIntoView({behavior:'smooth'});"
+                            style="width:40px;height:40px;border-radius:50%;background:#272789;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;position:relative;">
+                            🔔
+                        </button>
+                        <span id="adminNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;pointer-events:none;"></span>
+                    </div>
+                    <button id="adminSignOutBtn" class="admin-logout-btn">Sign Out</button>
+                </div>
             </div>
             <div class="header-tabs">
                 <a href="#" class="tab active" data-section="organizations">Organizations</a>
@@ -45,7 +55,7 @@
                     </div>
                     <div class="stat-card">
                         <h3>Total Members</h3>
-                        <p>0</p>
+                        <p id="stat-total-members">0</p>
                         <img src="/image/totmem.png" alt="Members" class="stat-icon">
                     </div>
                 </div>
@@ -68,9 +78,16 @@
                 <div class="event-list-container">
                     <div class="dashboard-header">
                         <div class="header-title"><h2>Manage Organization Events</h2></div>
-                        <button class="add-button" id="addEventBtn">
-                            <span class="icon">+</span> Add Event
-                        </button>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <select id="eventStatusFilter" style="padding:8px 14px;border:1.5px solid #e0e0f0;border-radius:9px;font-size:13px;font-weight:700;color:#272789;background:#f8f8ff;cursor:pointer;outline:none;">
+                                <option value="needs_approval">⏳ Needs Approval</option>
+                                <option value="approved">✅ Approved</option>
+                                <option value="not_approved">❌ Not Approved</option>
+                            </select>
+                            <button class="add-button" id="addEventBtn">
+                                <span class="icon">+</span> Add Event
+                            </button>
+                        </div>
                     </div>
                     <div id="eventTableBody"></div>
                 </div>
@@ -266,7 +283,8 @@
         <div class="modal-content" style="max-width:520px;">
             <span id="closeAssignModal" class="close-btn">&times;</span>
             <h3 style="margin-bottom:4px;">Assign Leader</h3>
-            <p style="font-size:13px;color:#666;margin-bottom:16px;">Org: <strong id="assignModalOrgName"></strong></p>
+            <p style="font-size:13px;color:#666;margin-bottom:4px;">Organization: <strong id="assignModalOrgName"></strong></p>
+            <p style="font-size:12px;color:#6366f1;margin-bottom:16px;">Org members are listed first. You can assign any registered student.</p>
             <div style="position:relative;margin-bottom:14px;">
                 <input type="text" id="studentSearchInput" placeholder="Search by name or email..."
                     style="width:100%;padding:10px 14px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;box-sizing:border-box;outline:none;">
@@ -335,7 +353,7 @@
         .no-students-msg { text-align: center; padding: 30px; color: #aaa; font-size: 14px; }
     </style>
 
-    <script src="admin.js"></script>
+    <script type="module" src="admin.js"></script>
     <script>
         // Admin Sign Out - clears localStorage session
         document.getElementById('adminSignOutBtn')?.addEventListener('click', () => {

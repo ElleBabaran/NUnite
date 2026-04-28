@@ -35,6 +35,45 @@
             background-size: cover;
             background-position: center;
         }
+        /* Notification bell */
+        #notifBtn { position: relative; }
+        #notifBadge {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: #fff;
+            font-size: 9px; font-weight: 800;
+            width: 16px; height: 16px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        #notifDropdown {
+            position: absolute; right: 0; top: 48px;
+            width: 320px; background: #fff; border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            border: 1px solid #e8eaf6; z-index: 200;
+            overflow: hidden;
+        }
+        #notifDropdown .notif-header {
+            padding: 12px 16px; font-size: 12px; font-weight: 800;
+            color: #1e1b4b; border-bottom: 1px solid #e8eaf6;
+            background: #f8f8ff; text-transform: uppercase; letter-spacing: 1px;
+        }
+        #notifDropdown .notif-item {
+            display: flex; gap: 12px; padding: 12px 16px;
+            border-bottom: 1px solid #f1f1f1; align-items: flex-start;
+        }
+        #notifDropdown .notif-item:last-child { border-bottom: none; }
+        #notifDropdown .notif-date {
+            flex-shrink: 0; width: 40px; height: 40px; border-radius: 10px;
+            background: linear-gradient(135deg,#4f46e5,#7c3aed);
+            color: #fff; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            font-weight: 800; line-height: 1;
+        }
+        #notifDropdown .notif-date .nd-month { font-size: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        #notifDropdown .notif-date .nd-day   { font-size: 16px; }
+        #notifDropdown .notif-info h4 { font-size: 13px; font-weight: 700; color: #1e1b4b; margin: 0 0 2px; }
+        #notifDropdown .notif-info p  { font-size: 11px; color: #888; margin: 0; }
+        #notifDropdown .notif-empty   { padding: 24px 16px; text-align: center; font-size: 13px; color: #aaa; }
     </style>
 </head>
 <body>
@@ -68,7 +107,16 @@
                             </div>
                         </div>
                         
-                        <div class="relative flex items-center flex-shrink-0">
+                        <div class="relative flex items-center gap-3 flex-shrink-0">
+                        <!-- Notification Bell -->
+                        <div class="relative" id="notifBtn" style="display:none;">
+                            <button onclick="toggleNotifMenu()" class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors border border-white/20 shadow-lg">
+                                <i class="fa-solid fa-bell text-white"></i>
+                            </button>
+                            <span id="notifBadge" style="display:none;"></span>
+                            <div id="notifDropdown" class="hidden"></div>
+                        </div>
+
                         <button onclick="toggleAuthMenu()" class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-colors border border-white/10 shadow-lg">
                             <i class="fa-solid fa-user text-white"></i>
                         </button>
@@ -188,7 +236,7 @@
             </div>
         </div>
     </div>
-</div> class="w-full">
+</div>
         <div class="bg-[#ffcc00] py-10 text-center">
             <p class="text-black font-medium tracking-wide">
                 Copyright <span class="font-bold">2025</span>. All Rights Reserved
@@ -322,11 +370,12 @@
             document.getElementById('stat-total').innerText = data.length;
             const members = data.reduce((acc, curr) => acc + (parseInt(curr.memberCount) || 0), 0);
             document.getElementById('stat-members').innerText = members;
-            // Count only APPROVED events
+            // Count only APPROVED and upcoming events
             try {
+                const now = new Date();
                 const events = JSON.parse(localStorage.getItem('nunite_events') || '[]');
-                const approvedCount = events.filter(ev => ev.approved).length;
-                document.getElementById('stat-events').innerText = approvedCount;
+                const upcomingCount = events.filter(ev => ev.approved && (!ev.date || new Date(ev.date) >= now)).length;
+                document.getElementById('stat-events').innerText = upcomingCount;
             } catch { document.getElementById('stat-events').innerText = 0; }
         }
 
@@ -334,30 +383,74 @@
             const grid = document.getElementById('eventsGrid');
             if (!grid) return;
             try {
+                const now    = new Date();
                 const events = JSON.parse(localStorage.getItem('nunite_events') || '[]');
-                const approved = events.filter(ev => ev.approved);
-                if (approved.length === 0) {
+                // Only show approved AND not-yet-finished events
+                const upcoming = events.filter(ev => {
+                    if (!ev.approved) return false;
+                    if (!ev.date)     return true; // no date = always show
+                    return new Date(ev.date) >= now;
+                });
+                if (upcoming.length === 0) {
                     grid.innerHTML = '<div class="col-span-full text-center py-10 text-white/40"><p class="text-xl">No upcoming events yet.</p></div>';
                     return;
                 }
                 // Sort by date ascending
-                approved.sort((a, b) => new Date(a.date) - new Date(b.date));
-                grid.innerHTML = approved.map(ev => {
+                upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+                const userEmail   = localStorage.getItem('userEmail') || '';
+                const isAdmin     = localStorage.getItem('isAdmin') === 'true';
+                const isLeader    = window.__nuniteIsLeader === true;
+                const eventJoins  = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+                // Normal student only: not admin, not leader, signed in
+                const isNormalStudent = userEmail && !isAdmin && !isLeader;
+
+                grid.innerHTML = upcoming.map(ev => {
                     const d     = ev.date ? new Date(ev.date) : null;
                     const month = d ? d.toLocaleString('default', { month: 'short' }).toUpperCase() : '—';
                     const day   = d ? d.getDate() : '—';
+                    const year  = d ? d.getFullYear() : '';
                     const time  = d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    const weekday = d ? d.toLocaleString('default', { weekday: 'long' }) : '';
+
+                    // Determine join button state — only for normal students
+                    let joinBtnHtml = '';
+                    if (isNormalStudent) {
+                        const myJoin = eventJoins.find(j => String(j.eventId) === String(ev.id) && j.email === userEmail);
+                        if (!myJoin) {
+                            joinBtnHtml = `<button onclick="joinEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}','${(ev.org||'').replace(/'/g,"\\'")}', this)"
+                                class="mt-4 w-full py-2 rounded-lg text-xs font-bold bg-indigo-500 hover:bg-indigo-400 text-white transition-all active:scale-95">
+                                🎟️ Join Event
+                            </button>`;
+                        } else if (myJoin.status === 'pending') {
+                            joinBtnHtml = `<button disabled class="mt-4 w-full py-2 rounded-lg text-xs font-bold bg-yellow-500/30 text-yellow-300 cursor-not-allowed">⏳ Request Pending</button>`;
+                        } else if (myJoin.status === 'approved') {
+                            joinBtnHtml = `<button disabled class="mt-4 w-full py-2 rounded-lg text-xs font-bold bg-green-500/30 text-green-300 cursor-not-allowed">✅ Attending</button>`;
+                        } else if (myJoin.status === 'rejected') {
+                            joinBtnHtml = `<button disabled class="mt-4 w-full py-2 rounded-lg text-xs font-bold bg-red-500/20 text-red-400 cursor-not-allowed">❌ Not Approved</button>`;
+                        }
+                    } else if (!userEmail) {
+                        joinBtnHtml = `<a href="sign_in.html" class="mt-4 w-full py-2 rounded-lg text-xs font-bold bg-white/10 hover:bg-white/20 text-white/70 transition-all text-center block">Sign in to Join</a>`;
+                    }
+                    // Admin & leader see nothing (no button)
+
                     return `
-                    <div class="bg-white/10 border border-white/20 rounded-2xl p-6 flex gap-4 items-start hover:bg-white/15 transition-all">
-                        <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-indigo-600 flex flex-col items-center justify-center text-white font-extrabold leading-tight">
-                            <span style="font-size:9px;letter-spacing:1px;">${month}</span>
-                            <span style="font-size:22px;">${day}</span>
+                    <div class="bg-white/10 border border-white/20 rounded-2xl p-6 flex gap-5 items-start hover:bg-white/15 transition-all" style="min-height:140px;">
+                        <div class="flex-shrink-0 w-16 rounded-xl overflow-hidden border border-white/20 text-center" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+                            <div style="background:rgba(255,255,255,0.15);padding:4px 0;font-size:9px;letter-spacing:2px;font-weight:800;color:rgba(255,255,255,0.9);">${month}</div>
+                            <div style="font-size:32px;font-weight:900;color:#fff;line-height:1.1;padding:6px 0 2px;">${day}</div>
+                            <div style="font-size:9px;color:rgba(255,255,255,0.6);padding-bottom:6px;">${year}</div>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <h3 class="text-white font-bold text-base leading-tight mb-1">${ev.title}</h3>
-                            <p class="text-white/60 text-xs mb-1">${ev.org}${time ? ' · ' + time : ''}</p>
-                            ${ev.description ? `<p class="text-white/50 text-xs leading-relaxed">${ev.description}</p>` : ''}
-                            ${ev.location ? `<p class="text-indigo-300 text-xs mt-1">📍 ${ev.location}</p>` : ''}
+                        <div class="flex-1 min-w-0 flex flex-col justify-between" style="min-height:100px;">
+                            <div>
+                                <h3 class="text-white font-bold text-base leading-tight mb-2">${ev.title}</h3>
+                                ${ev.description ? `<p class="text-white/60 text-sm leading-relaxed mb-2">${ev.description}</p>` : ''}
+                            </div>
+                            <div class="flex flex-col gap-1 mt-auto">
+                                <p class="text-indigo-300 text-xs font-semibold">Org: ${ev.org}</p>
+                                ${time   ? `<p class="text-white/50 text-xs">🕐 ${weekday}${weekday ? ', ' : ''}${time}</p>` : ''}
+                                ${ev.location ? `<p class="text-white/50 text-xs">📍 ${ev.location}</p>` : ''}
+                            </div>
+                            ${joinBtnHtml}
                         </div>
                     </div>`;
                 }).join('');
@@ -366,24 +459,72 @@
             }
         }
 
-        function updateAuthDropdown() {
+        function joinEvent(eventId, eventTitle, eventOrg, btn) {
+            const userEmail    = localStorage.getItem('userEmail') || '';
+            const userFullName = localStorage.getItem('userFullName') || '';
+            if (!userEmail) { window.location.href = 'sign_in.html'; return; }
+
+            const eventJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+            const already    = eventJoins.find(j => j.eventId === eventId && j.email === userEmail);
+            if (already) return;
+
+            eventJoins.push({
+                id:          Date.now().toString(),
+                eventId:     eventId,
+                eventTitle:  eventTitle,
+                eventOrg:    eventOrg,
+                email:       userEmail,
+                name:        userFullName,
+                status:      'pending',
+                requestedAt: new Date().toISOString()
+            });
+            localStorage.setItem('nunite_event_joins', JSON.stringify(eventJoins));
+
+            // Update button immediately
+            btn.disabled  = true;
+            btn.textContent = '⏳ Request Pending';
+            btn.className = 'mt-4 w-full py-2 rounded-lg text-xs font-bold bg-yellow-500/30 text-yellow-300 cursor-not-allowed';
+        }
+
+        async function updateAuthDropdown() {
             const dropdown = document.getElementById('authDropdown');
             const userFullName = localStorage.getItem('userFullName');
+            const userEmail    = localStorage.getItem('userEmail') || '';
             const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
             if (userFullName) {
+                // Check if this user is a leader in Supabase
+                let isLeader = false;
+                if (!isAdmin && userEmail) {
+                    try {
+                        const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+                        const _sb = createClient(
+                            'https://jivdnqxtijzlbtasubnc.supabase.co',
+                            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppdmRucXh0aWp6bGJ0YXN1Ym5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzY5MTAsImV4cCI6MjA5MDI1MjkxMH0.vVBR7ZQ6rk8gDWYon8D6Nmf0syT_P-gVcJrWyu_j0u0'
+                        );
+                        const { data } = await _sb.from('leaders').select('id').eq('email', userEmail).limit(1);
+                        isLeader = !!(data && data[0]);
+                    } catch (e) { /* fail silently */ }
+                }
+
+                // Store globally so renderEvents() can read it
+                window.__nuniteIsLeader = isLeader;
+                renderEvents(); // re-render so join button hides/shows correctly
+
                 const displayName = isAdmin ? 'Admin' : userFullName;
                 dropdown.innerHTML = `
                     <div class="px-4 py-2 border-b border-slate-100">
                         <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Signed in as</p>
                         <p class="text-sm font-bold text-slate-800 truncate">${displayName}</p>
                     </div>
-                    ${isAdmin ? `<a href="admindash.html" class="block px-4 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition-colors">Dashboard</a>` : ''}
+                    ${isAdmin  ? '<a href="admindash.html"  class="block px-4 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition-colors">Admin Dashboard</a>' : ''}
+                    ${isLeader ? '<a href="leaderdash.html" class="block px-4 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition-colors">Leader Dashboard</a>' : ''}
                     <a href="#" id="navSignOutBtn" class="block px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors">Sign Out</a>
                 `;
                 document.getElementById('navSignOutBtn').addEventListener('click', function(e) {
                     e.preventDefault();
                     localStorage.removeItem('userFullName');
+                    localStorage.removeItem('userEmail');
                     localStorage.removeItem('isAdmin');
                     window.location.href = 'sign_in.html';
                 });
@@ -424,9 +565,292 @@
             document.getElementById('organizations-section').scrollIntoView({ behavior: 'smooth' });
         }
 
+        // ── NOTIFICATION BELL ──
+        // Read-state helpers — keyed per user email
+        function getReadKey() {
+            return 'nunite_read_' + (localStorage.getItem('userEmail') || 'guest');
+        }
+        function getReadState() {
+            try { return JSON.parse(localStorage.getItem(getReadKey()) || '{}'); }
+            catch { return {}; }
+        }
+        function saveReadState(state) {
+            localStorage.setItem(getReadKey(), JSON.stringify(state));
+        }
+
+        function markAllRead() {
+            const userEmail = localStorage.getItem('userEmail') || '';
+            const isAdmin   = localStorage.getItem('isAdmin') === 'true';
+            const state     = getReadState();
+
+            if (isAdmin) {
+                // Mark all current pending event IDs as read
+                const events = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                const pending = events.filter(ev => !ev.approved && ev.rejected !== true);
+                state.adminPendingIds = pending.map(ev => ev.id);
+            } else {
+                // Mark all join statuses as read
+                const joins   = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+                const myJoins = joins.filter(j => j.email === userEmail);
+                state.joinRead = myJoins.map(j => j.orgId + '_' + (j.status || 'pending'));
+                // Mark all visible event IDs as read
+                const events   = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                state.eventIds = events.filter(ev => ev.approved).map(ev => ev.id);
+                // Leader: mark approved event IDs
+                state.leaderEventIds = events.filter(ev => ev.approved).map(ev => ev.id);
+            }
+            saveReadState(state);
+            // Clear badge immediately
+            document.getElementById('notifBadge').style.display = 'none';
+        }
+
+        function toggleNotifMenu() {
+            const dd = document.getElementById('notifDropdown');
+            const isHidden = dd.classList.contains('hidden');
+            dd.classList.toggle('hidden');
+            // When opening → mark all as read
+            if (isHidden) {
+                markAllRead();
+            }
+            // close on outside click
+            setTimeout(() => {
+                window.addEventListener('click', function handler(e) {
+                    if (!e.target.closest('#notifBtn')) {
+                        dd.classList.add('hidden');
+                        window.removeEventListener('click', handler);
+                    }
+                });
+            }, 0);
+        }
+
+        async function initNotifications() {
+            const userEmail    = localStorage.getItem('userEmail') || '';
+            const userFullName = localStorage.getItem('userFullName') || '';
+            const isAdmin      = localStorage.getItem('isAdmin') === 'true';
+            if (!userEmail && !userFullName) return;
+
+            const btn     = document.getElementById('notifBtn');
+            const badge   = document.getElementById('notifBadge');
+            const notifDd = document.getElementById('notifDropdown');
+
+            // ── ADMIN ──
+            if (isAdmin) {
+                const events        = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                const pendingEvents = events.filter(ev => !ev.approved && ev.rejected !== true);
+                const readState     = getReadState();
+                const readIds       = readState.adminPendingIds || [];
+                const unreadCount   = pendingEvents.filter(ev => !readIds.includes(ev.id)).length;
+
+                btn.style.display   = 'block';
+                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+                badge.textContent   = unreadCount > 9 ? '9+' : unreadCount;
+
+                let html = '<div class="notif-header">⏳ Pending Event Approvals</div>';
+                if (pendingEvents.length === 0) {
+                    html += '<div class="notif-empty">No pending events — all caught up! ✅</div>';
+                } else {
+                    html += pendingEvents.map(ev => {
+                        const d       = ev.date ? new Date(ev.date) : null;
+                        const month   = d ? d.toLocaleString('default', { month: 'short' }).toUpperCase() : '—';
+                        const day     = d ? d.getDate() : '—';
+                        const isUnread = !readIds.includes(ev.id);
+                        return '<div class="notif-item" style="' + (isUnread ? 'background:#fffbeb;' : '') + '">'
+                            + '<div class="notif-date"><span class="nd-month">' + month + '</span><span class="nd-day">' + day + '</span></div>'
+                            + '<div class="notif-info">'
+                            + (isUnread ? '<span style="display:inline-block;width:7px;height:7px;background:#ef4444;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>' : '')
+                            + '<h4 style="display:inline;">' + ev.title + '</h4>'
+                            + '<p style="margin-top:2px;">👤 ' + ev.org + ' · Submitted by leader</p>'
+                            + '</div></div>';
+                    }).join('');
+                }
+                notifDd.innerHTML = html;
+                return;
+            }
+
+            // ── LEADER CHECK ──
+            let isLeader = false;
+            let myLeader = null;
+            if (userEmail) {
+                try {
+                    const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+                    const _sb = createClient(
+                        'https://jivdnqxtijzlbtasubnc.supabase.co',
+                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppdmRucXh0aWp6bGJ0YXN1Ym5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzY5MTAsImV4cCI6MjA5MDI1MjkxMH0.vVBR7ZQ6rk8gDWYon8D6Nmf0syT_P-gVcJrWyu_j0u0'
+                    );
+                    const { data } = await _sb.from('leaders').select('*').eq('email', userEmail).limit(1);
+                    if (data && data[0]) { isLeader = true; myLeader = data[0]; }
+                } catch (e) { /* fail silently */ }
+            }
+
+            if (isLeader && myLeader) {
+                // ── LEADER NOTIFICATIONS ──
+                const myOrgId   = myLeader.org_id;
+                const myOrgName = myLeader.org_name;
+                const joins     = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+                const pendingJoins   = joins.filter(j => j.orgId === myOrgId && (j.status || 'pending') === 'pending');
+                const allEvents      = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                const approvedEvents = allEvents.filter(ev => ev.org === myOrgName && ev.approved);
+
+                const readState       = getReadState();
+                const readJoinKeys    = readState.joinRead || [];
+                const readEventIds    = readState.leaderEventIds || [];
+                const unreadJoins     = pendingJoins.filter(j => !readJoinKeys.includes(j.orgId + '_pending'));
+                const unreadEvents    = approvedEvents.filter(ev => !readEventIds.includes(ev.id));
+                const unreadTotal     = unreadJoins.length + unreadEvents.length;
+
+                btn.style.display   = 'block';
+                badge.style.display = unreadTotal > 0 ? 'flex' : 'none';
+                badge.textContent   = unreadTotal > 9 ? '9+' : unreadTotal;
+
+                let html = '<div class="notif-header">🔔 Leader Notifications</div>';
+
+                if (pendingJoins.length > 0) {
+                    html += '<div class="notif-header" style="font-size:10px;background:#fef9c3;color:#92400e;border-top:1px solid #fde68a;">⏳ Join Requests (' + pendingJoins.length + ')</div>';
+                    html += pendingJoins.map(j => {
+                        const isUnread = !readJoinKeys.includes(j.orgId + '_pending');
+                        return `<div class="notif-item" style="${isUnread ? 'background:#fffbeb;' : ''}">
+                            <div class="notif-date" style="background:linear-gradient(135deg,#f59e0b,#d97706);font-size:20px;display:flex;align-items:center;justify-content:center;">👤</div>
+                            <div class="notif-info">
+                                ${isUnread ? '<span style="display:inline-block;width:7px;height:7px;background:#ef4444;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>' : ''}
+                                <h4 style="display:inline;">${j.name || j.email}</h4>
+                                <p style="margin-top:2px;">Wants to join <strong>${myOrgName}</strong></p>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                if (approvedEvents.length > 0) {
+                    html += '<div class="notif-header" style="font-size:10px;background:#dcfce7;color:#166534;border-top:1px solid #86efac;">✅ Approved Events (' + approvedEvents.length + ')</div>';
+                    html += approvedEvents.map(ev => {
+                        const d        = ev.date ? new Date(ev.date) : null;
+                        const month    = d ? d.toLocaleString('default', { month: 'short' }).toUpperCase() : '—';
+                        const day      = d ? d.getDate() : '—';
+                        const isUnread = !readEventIds.includes(ev.id);
+                        return '<div class="notif-item" style="' + (isUnread ? 'background:#f0fdf4;' : '') + '">'
+                            + '<div class="notif-date" style="background:linear-gradient(135deg,#22c55e,#16a34a);"><span class="nd-month">' + month + '</span><span class="nd-day">' + day + '</span></div>'
+                            + '<div class="notif-info">'
+                            + (isUnread ? '<span style="display:inline-block;width:7px;height:7px;background:#ef4444;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>' : '')
+                            + '<h4 style="display:inline;">' + ev.title + '</h4>'
+                            + '<p style="margin-top:2px;">✅ Approved by Admin</p>'
+                            + '</div></div>';
+                    }).join('');
+                }
+
+                if (pendingJoins.length === 0 && approvedEvents.length === 0) html += '<div class="notif-empty">No new notifications 🎉</div>';
+                notifDd.innerHTML = html;
+                return;
+            }
+
+            // ── REGULAR STUDENT ──
+            const readState  = getReadState();
+            const readJoins  = readState.joinRead   || [];
+            const readEvtIds = readState.eventIds   || [];
+
+            const joins    = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+            const myJoins  = joins.filter(j => j.email === userEmail);
+            const approved = myJoins.filter(j => j.status === 'approved');
+            const pending  = myJoins.filter(j => (j.status || 'pending') === 'pending');
+            const rejected = myJoins.filter(j => j.status === 'rejected');
+
+            const myOrgNames = approved.map(j => j.orgName || j.orgId);
+            const myOrgIds   = approved.map(j => j.orgId);
+
+            const now    = new Date();
+            const events = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            const myEvents = events.filter(ev => {
+                if (!ev.approved) return false;
+                const orgMatch = myOrgNames.includes(ev.org) || myOrgIds.includes(ev.org);
+                if (!orgMatch) return false;
+                return !ev.date || new Date(ev.date) >= now;
+            });
+
+            // Unread counts only
+            const unreadApproved = approved.filter(j => !readJoins.includes(j.orgId + '_approved'));
+            const unreadRejected = rejected.filter(j => !readJoins.includes(j.orgId + '_rejected'));
+            const unreadEvents   = myEvents.filter(ev => !readEvtIds.includes(ev.id));
+            const unreadBadge    = unreadApproved.length + unreadRejected.length + unreadEvents.length;
+
+            if (myJoins.length === 0 && myEvents.length === 0) return;
+
+            btn.style.display   = 'block';
+            badge.style.display = unreadBadge > 0 ? 'flex' : 'none';
+            badge.textContent   = unreadBadge > 9 ? '9+' : unreadBadge;
+
+            let html = '<div class="notif-header">🔔 Your Notifications</div>';
+
+            if (approved.length > 0) {
+                html += approved.map(j => {
+                    const isUnread = !readJoins.includes(j.orgId + '_approved');
+                    return `<div class="notif-item" style="${isUnread ? 'background:#f0fdf4;' : ''}">
+                        <div class="notif-date" style="background:linear-gradient(135deg,#22c55e,#16a34a);font-size:20px;display:flex;align-items:center;justify-content:center;">✅</div>
+                        <div class="notif-info">
+                            ${isUnread ? '<span style="display:inline-block;width:7px;height:7px;background:#ef4444;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>' : ''}
+                            <h4 style="display:inline;">Join Approved!</h4>
+                            <p style="margin-top:2px;">You're now a member of <strong>${j.orgName || 'an organization'}</strong></p>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            if (rejected.length > 0) {
+                html += rejected.map(j => {
+                    const isUnread = !readJoins.includes(j.orgId + '_rejected');
+                    return `<div class="notif-item" style="${isUnread ? 'background:#fff1f2;' : ''}">
+                        <div class="notif-date" style="background:linear-gradient(135deg,#ef4444,#b91c1c);font-size:20px;display:flex;align-items:center;justify-content:center;">❌</div>
+                        <div class="notif-info">
+                            ${isUnread ? '<span style="display:inline-block;width:7px;height:7px;background:#ef4444;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>' : ''}
+                            <h4 style="display:inline;">Not Approved</h4>
+                            <p style="margin-top:2px;">Your request to join <strong>${j.orgName || 'an organization'}</strong> was declined.</p>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+            if (pending.length > 0) {
+                html += pending.map(j => `
+                    <div class="notif-item">
+                        <div class="notif-date" style="background:linear-gradient(135deg,#f59e0b,#d97706);font-size:20px;display:flex;align-items:center;justify-content:center;">⏳</div>
+                        <div class="notif-info">
+                            <h4>Request Pending</h4>
+                            <p>Waiting for <strong>${j.orgName || 'an organization'}</strong> to review your request.</p>
+                        </div>
+                    </div>`).join('');
+            }
+
+            if (myEvents.length > 0) {
+                html += '<div class="notif-header" style="font-size:10px;background:#f0f4ff;color:#4338ca;border-top:1px solid #c7d2fe;">📅 Upcoming Events from Your Orgs</div>';
+                myEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+                html += myEvents.map(ev => {
+                    const d        = ev.date ? new Date(ev.date) : null;
+                    const month    = d ? d.toLocaleString('default', { month: 'short' }).toUpperCase() : '—';
+                    const day      = d ? d.getDate() : '—';
+                    const time     = d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                    const isUnread = !readEvtIds.includes(ev.id);
+                    return '<div class="notif-item" style="' + (isUnread ? 'background:#f0f4ff;' : '') + '">'
+                        + '<div class="notif-date"><span class="nd-month">' + month + '</span><span class="nd-day">' + day + '</span></div>'
+                        + '<div class="notif-info">'
+                        + (isUnread ? '<span style="display:inline-block;width:7px;height:7px;background:#ef4444;border-radius:50%;margin-right:5px;vertical-align:middle;"></span>' : '')
+                        + '<h4 style="display:inline;">' + ev.title + '</h4>'
+                        + '<p style="margin-top:2px;">' + ev.org + (time ? ' · ' + time : '') + '</p>'
+                        + (ev.location ? '<p>📍 ' + ev.location + '</p>' : '')
+                        + '</div></div>';
+                }).join('');
+            }
+
+            if (unreadBadge === 0 && pending.length === 0 && myEvents.length === 0) {
+                html += '<div class="notif-empty">No notifications yet.</div>';
+            }
+
+            notifDd.innerHTML = html;
+        }
+
         // Initialize
         render();
         renderEvents();
+        // Run notifications after DOM is ready (handles both page-load and script-at-bottom cases)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initNotifications);
+        } else {
+            initNotifications();
+        }
     </script>
 </body>
 </html>

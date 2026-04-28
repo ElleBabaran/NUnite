@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head><title>Supabase Debug</title></head>
+<body>
+<h2>Supabase Profiles Debug</h2>
+<pre id="out">Testing...</pre>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+const supabase = createClient(
+  'https://jivdnqxtijzlbtasubnc.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImppdmRucXh0aWp6bGJ0YXN1Ym5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzY5MTAsImV4cCI6MjA5MDI1MjkxMH0.vVBR7ZQ6rk8gDWYon8D6Nmf0syT_P-gVcJrWyu_j0u0'
+);
+
+const out = document.getElementById('out');
+
+// Test 1: fetch all profiles no filter
+const { data: all, error: e1 } = await supabase.from('profiles').select('*');
+out.textContent += '\n\n=== ALL PROFILES (no filter) ===\n';
+out.textContent += 'Error: ' + JSON.stringify(e1) + '\n';
+out.textContent += 'Data: ' + JSON.stringify(all, null, 2);
+
+// Test 2: fetch with is_admin=false
+const { data: students, error: e2 } = await supabase.from('profiles').select('*').eq('is_admin', false);
+out.textContent += '\n\n=== PROFILES where is_admin=false ===\n';
+out.textContent += 'Error: ' + JSON.stringify(e2) + '\n';
+out.textContent += 'Data: ' + JSON.stringify(students, null, 2);
+
+// Test 3: check what columns exist
+out.textContent += '\n\n=== COLUMN NAMES (from first row) ===\n';
+if (all && all[0]) out.textContent += Object.keys(all[0]).join(', ');
+else out.textContent += '(no rows returned)';
+</script>
+</body>
+</html>

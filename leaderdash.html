@@ -106,11 +106,56 @@
             min-height: 80px; line-height: 1.7;
         }
 
+        /* Event card actions */
+        .event-card-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+        .ev-action-btn {
+            padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+            border: none; cursor: pointer; transition: opacity .15s;
+        }
+        .ev-action-btn:hover { opacity: 0.85; }
+        .ev-btn-view   { background: #272789; color: #fff; }
+        .ev-btn-edit   { background: #6366f1; color: #fff; }
+        .ev-btn-delete { background: #ef4444; color: #fff; }
+
         /* Empty state */
         .empty-state { text-align: center; padding: 50px 20px; color: #aaa; }
         .empty-state .empty-icon { font-size: 44px; margin-bottom: 10px; }
         .empty-state p { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
         .empty-state span { font-size: 13px; }
+
+        /* Event accordion for attendees */
+        .ev-accordion {
+            border: 1.5px solid #e8eaf6;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .ev-accordion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            cursor: pointer;
+            user-select: none;
+            background: #f8f8ff;
+            transition: background .15s;
+        }
+        .ev-accordion-header:hover { background: #ede9fe; }
+        .ev-accordion-header-left { display: flex; align-items: center; gap: 12px; }
+        .ev-accordion-title { font-size: 14px; font-weight: 800; color: #1e1b4b; }
+        .ev-accordion-meta  { font-size: 11px; color: #888; margin-top: 2px; }
+        .ev-accordion-pills { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .ev-accordion-chevron {
+            font-size: 13px; color: #6366f1; font-weight: 900;
+            transition: transform .2s;
+        }
+        .ev-accordion-chevron.open { transform: rotate(180deg); }
+        .ev-accordion-body {
+            display: none;
+            border-top: 1.5px solid #e8eaf6;
+        }
+        .ev-accordion-body.open { display: block; }
     </style>
 </head>
 <body>
@@ -131,12 +176,21 @@
                         <h2>Leader <br> Dashboard</h2>
                         <p id="leaderOrgSubtitle">Manage your organization</p>
                     </div>
-                    <button id="leaderSignOutBtn" class="admin-logout-btn">Sign Out</button>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div id="leaderNotifBell" style="position:relative;display:none;">
+                            <button id="leaderNotifBtn" style="width:40px;height:40px;border-radius:50%;background:#272789;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">
+                                🔔
+                            </button>
+                            <span id="leaderNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;pointer-events:none;"></span>
+                        </div>
+                        <button id="leaderSignOutBtn" class="admin-logout-btn">Sign Out</button>
+                    </div>
                 </div>
 
                 <div class="header-tabs">
                     <a href="#" class="tab active" data-section="ld-members">Members</a>
                     <a href="#" class="tab"         data-section="ld-events">Events</a>
+                    <a href="#" class="tab"         data-section="ld-attendees">Event Attendees <span id="attendeeTabBadge" style="display:none;background:#ef4444;color:#fff;font-size:9px;font-weight:800;padding:1px 6px;border-radius:10px;margin-left:4px;vertical-align:middle;"></span></a>
                 </div>
             </div>
         </header>
@@ -206,6 +260,25 @@
                 </div>
             </div>
 
+            <!-- EVENT ATTENDEES TAB -->
+            <div id="ld-attendees" class="content-section">
+                <div class="organization-list-container">
+                    <div class="organization-list">
+                        <div class="dashboard-header">
+                            <div class="header-title">
+                                <h2>Event Attendees</h2>
+                                <p style="font-size:13px;color:#888;margin:4px 0 0;">Students who requested to join your events</p>
+                            </div>
+                        </div>
+
+                        <!-- Event filter pills -->
+                        <div class="filter-pills" id="attendeeEventPills" style="margin-bottom:16px;"></div>
+
+                        <div id="attendeeListBody"></div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -243,6 +316,71 @@
     </div>
 
 
+    <!-- VIEW EVENT MODAL -->
+    <div id="viewEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeViewEventModal">&times;</span>
+            <h3>Event Details</h3>
+            <div style="margin-top:16px;">
+                <p style="font-size:12px;color:#888;margin-bottom:2px;">Title</p>
+                <p id="vevTitle" style="font-size:16px;font-weight:700;color:#1e1b4b;margin:0 0 14px;"></p>
+                <p style="font-size:12px;color:#888;margin-bottom:2px;">Description</p>
+                <p id="vevDescription" style="font-size:14px;color:#444;margin:0 0 14px;line-height:1.6;"></p>
+                <div style="display:flex;gap:24px;flex-wrap:wrap;">
+                    <div>
+                        <p style="font-size:12px;color:#888;margin-bottom:2px;">Date &amp; Time</p>
+                        <p id="vevDate" style="font-size:14px;font-weight:600;color:#1e1b4b;margin:0;"></p>
+                    </div>
+                    <div>
+                        <p style="font-size:12px;color:#888;margin-bottom:2px;">Location</p>
+                        <p id="vevLocation" style="font-size:14px;font-weight:600;color:#1e1b4b;margin:0;"></p>
+                    </div>
+                </div>
+                <div style="margin-top:14px;">
+                    <p style="font-size:12px;color:#888;margin-bottom:4px;">Status</p>
+                    <span id="vevStatus"></span>
+                </div>
+            </div>
+            <div class="modal-buttons" style="margin-top:24px;">
+                <button type="button" class="add-btn" id="closeViewEventModalBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT EVENT MODAL -->
+    <div id="editEventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeEditEventModal">&times;</span>
+            <h3>Edit Event</h3>
+            <p style="font-size:13px;color:#888;margin-bottom:16px;">Editing will reset approval status to pending.</p>
+            <form id="editEventForm">
+                <input type="hidden" id="editEventId">
+                <div class="form-group">
+                    <label for="editEventTitle">Event Title *</label>
+                    <input type="text" id="editEventTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="editEventDescription">Description</label>
+                    <textarea id="editEventDescription"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editEventDateTime">Date &amp; Time</label>
+                        <input type="datetime-local" id="editEventDateTime">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventLocation">Location</label>
+                        <input type="text" id="editEventLocation">
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="cancel-btn" id="cancelEditEventBtn">Cancel</button>
+                    <button type="submit" class="add-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="reasonModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" id="closeReasonModal">&times;</span>
@@ -258,14 +396,28 @@
         </div>
     </div>
 
-    <script>
-    (function () {
+    <script type="module">
+        import { supabase } from './supabase.js';
 
-        // ── AUTH GUARD ──
+    (async function () {
+
+        // ── AUTH GUARD — checks Supabase leaders table ──
         const userEmail    = localStorage.getItem('userEmail') || '';
         const userFullName = localStorage.getItem('userFullName') || 'Leader';
-        const leaders      = JSON.parse(localStorage.getItem('nunite_leaders') || '[]');
-        const myLeader     = leaders.find(l => l.email === userEmail);
+
+        if (!userEmail) {
+            alert('Access denied. You are not assigned as a leader.');
+            window.location.href = 'index.html';
+            return;
+        }
+
+        const { data: leaderRows, error } = await supabase
+            .from('leaders')
+            .select('*')
+            .eq('email', userEmail)
+            .limit(1);
+
+        const myLeader = leaderRows && leaderRows[0];
 
         if (!myLeader) {
             alert('Access denied. You are not assigned as a leader.');
@@ -273,8 +425,8 @@
             return;
         }
 
-        const myOrgId   = myLeader.orgId;
-        const myOrgName = myLeader.orgName;
+        const myOrgId   = myLeader.org_id;
+        const myOrgName = myLeader.org_name;
 
         document.getElementById('leaderOrgSubtitle').textContent = myOrgName;
 
@@ -385,12 +537,12 @@
                 card.querySelector('.do-approve')?.addEventListener('click', () => {
                     const m = getMembers().find(x => x.email === email);
                     if (!m) return;
-                    m.status = 'approved'; saveJoin(m); renderMembers();
+                    m.status = 'approved'; saveJoin(m); renderMembers(); updateLeaderBell();
                 });
                 card.querySelector('.do-reject')?.addEventListener('click', () => {
                     const m = getMembers().find(x => x.email === email);
                     if (!m) return;
-                    m.status = 'rejected'; saveJoin(m); renderMembers();
+                    m.status = 'rejected'; saveJoin(m); renderMembers(); updateLeaderBell();
                 });
             });
         }
@@ -407,6 +559,7 @@
             saveJoin(currentReasonMember);
             document.getElementById('reasonModal').style.display = 'none';
             renderMembers();
+            updateLeaderBell();
         });
         document.getElementById('reasonRejectBtn').addEventListener('click', () => {
             if (!currentReasonMember) return;
@@ -414,6 +567,7 @@
             saveJoin(currentReasonMember);
             document.getElementById('reasonModal').style.display = 'none';
             renderMembers();
+            updateLeaderBell();
         });
         window.addEventListener('click', e => {
             const modal = document.getElementById('reasonModal');
@@ -444,18 +598,71 @@
                     ? '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;">✅ Approved</span>'
                     : '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Pending</span>';
                 return `
-                <div class="event-card-row">
+                <div class="event-card-row" data-id="${ev.id}">
                     <div class="event-date-pill">
                         <span class="ev-month">${month}</span>
                         <span class="ev-day">${day}</span>
                     </div>
-                    <div class="event-card-info">
+                    <div class="event-card-info" style="flex:1;">
                         <h4>${ev.title} ${badge}</h4>
                         <p>${ev.description || 'No description.'}</p>
                         ${ev.location ? `<p style="margin-top:3px;">📍 ${ev.location}</p>` : ''}
+                        <div class="event-card-actions">
+                            <button class="ev-action-btn ev-btn-view"   data-id="${ev.id}">View</button>
+                            <button class="ev-action-btn ev-btn-edit"   data-id="${ev.id}">Edit</button>
+                            <button class="ev-action-btn ev-btn-delete" data-id="${ev.id}">Delete</button>
+                        </div>
                     </div>
                 </div>`;
             }).join('');
+
+            // ── VIEW ──
+            body.querySelectorAll('.ev-btn-view').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id  = parseInt(btn.dataset.id);
+                    const evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                    const ev  = evs.find(e => e.id === id);
+                    if (!ev) return;
+                    document.getElementById('vevTitle').textContent       = ev.title;
+                    document.getElementById('vevDescription').textContent = ev.description || '(No description.)';
+                    document.getElementById('vevLocation').textContent    = ev.location    || '(No location.)';
+                    document.getElementById('vevDate').textContent        = ev.date
+                        ? new Date(ev.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
+                        : '(No date.)';
+                    document.getElementById('vevStatus').innerHTML = ev.approved
+                        ? '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;">✅ Approved</span>'
+                        : '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Pending Admin Approval</span>';
+                    document.getElementById('viewEventModal').style.display = 'block';
+                });
+            });
+
+            // ── EDIT ──
+            body.querySelectorAll('.ev-btn-edit').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id  = parseInt(btn.dataset.id);
+                    const evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                    const ev  = evs.find(e => e.id === id);
+                    if (!ev) return;
+                    document.getElementById('editEventId').value          = ev.id;
+                    document.getElementById('editEventTitle').value       = ev.title       || '';
+                    document.getElementById('editEventDescription').value = ev.description || '';
+                    document.getElementById('editEventDateTime').value    = ev.date        || '';
+                    document.getElementById('editEventLocation').value    = ev.location    || '';
+                    document.getElementById('editEventModal').style.display = 'block';
+                });
+            });
+
+            // ── DELETE ──
+            body.querySelectorAll('.ev-btn-delete').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.dataset.id);
+                    if (!confirm('Delete this event? This cannot be undone.')) return;
+                    let evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                    evs = evs.filter(e => e.id !== id);
+                    localStorage.setItem('nunite_events', JSON.stringify(evs));
+                    renderEvents();
+                });
+            });
         }
 
         // ── LEADER EVENT SUBMISSION ──
@@ -501,6 +708,51 @@
             alert('Event submitted! It will appear publicly once the admin approves it.');
         });
 
+        // ── VIEW MODAL CLOSE ──
+        document.getElementById('closeViewEventModal').addEventListener('click', () => {
+            document.getElementById('viewEventModal').style.display = 'none';
+        });
+        document.getElementById('closeViewEventModalBtn').addEventListener('click', () => {
+            document.getElementById('viewEventModal').style.display = 'none';
+        });
+        window.addEventListener('click', e => {
+            if (e.target === document.getElementById('viewEventModal'))
+                document.getElementById('viewEventModal').style.display = 'none';
+        });
+
+        // ── EDIT MODAL LOGIC ──
+        document.getElementById('closeEditEventModal').addEventListener('click', () => {
+            document.getElementById('editEventModal').style.display = 'none';
+        });
+        document.getElementById('cancelEditEventBtn').addEventListener('click', () => {
+            document.getElementById('editEventModal').style.display = 'none';
+        });
+        window.addEventListener('click', e => {
+            if (e.target === document.getElementById('editEventModal'))
+                document.getElementById('editEventModal').style.display = 'none';
+        });
+
+        document.getElementById('editEventForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const id    = parseInt(document.getElementById('editEventId').value);
+            const title = document.getElementById('editEventTitle').value.trim();
+            if (!title) { alert('Event title is required.'); return; }
+
+            let evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            evs = evs.map(ev => ev.id === id ? {
+                ...ev,
+                title:       title,
+                description: document.getElementById('editEventDescription').value.trim(),
+                date:        document.getElementById('editEventDateTime').value,
+                location:    document.getElementById('editEventLocation').value.trim(),
+                approved:    false,   // reset to pending after edit
+            } : ev);
+            localStorage.setItem('nunite_events', JSON.stringify(evs));
+            document.getElementById('editEventModal').style.display = 'none';
+            renderEvents();
+            alert('Event updated! It will need admin approval again.');
+        });
+
         // ── SIGN OUT ──
         document.getElementById('leaderSignOutBtn').addEventListener('click', () => {
             localStorage.removeItem('userFullName');
@@ -508,10 +760,213 @@
             window.location.href = 'sign_in.html';
         });
 
+        // ── LEADER NOTIFICATION BELL ──
+        function updateLeaderBell() {
+            const joins        = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+            const pendingCount = joins.filter(j => j.orgId === myOrgId && (j.status || 'pending') === 'pending').length;
+            const bell  = document.getElementById('leaderNotifBell');
+            const badge = document.getElementById('leaderNotifBadge');
+            const btn   = document.getElementById('leaderNotifBtn');
+            if (!bell) return;
+            bell.style.display = 'block';
+            badge.textContent   = pendingCount > 9 ? '9+' : pendingCount;
+            badge.style.display = pendingCount > 0 ? 'flex' : 'none';
+            btn.onclick = () => {
+                // Switch to Members tab and filter to Pending
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelector('[data-section="ld-members"]').classList.add('active');
+                document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+                document.getElementById('ld-members').classList.add('active');
+                document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+                document.querySelector('.pill[data-filter="pending"]').classList.add('active');
+                activeFilter = 'pending';
+                renderMembers();
+            };
+        }
+
+        // ── RENDER ATTENDEES (accordion per event) ──
+        function renderAttendees() {
+            const allEventJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+            const allEvents     = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            const allOrgJoins   = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+
+            const myEvents   = allEvents.filter(ev => ev.approved && ev.org === myOrgName);
+            const myEventIds = myEvents.map(ev => String(ev.id));
+            const myAttendees = allEventJoins.filter(j => myEventIds.includes(String(j.eventId)));
+
+            // Badge on tab
+            const pendingCount = myAttendees.filter(j => (j.status || 'pending') === 'pending').length;
+            const badge = document.getElementById('attendeeTabBadge');
+            if (badge) {
+                badge.textContent   = pendingCount > 9 ? '9+' : pendingCount;
+                badge.style.display = pendingCount > 0 ? 'inline' : 'none';
+            }
+
+            // Clear pills (not used in accordion mode)
+            const pillsEl = document.getElementById('attendeeEventPills');
+            if (pillsEl) pillsEl.innerHTML = '';
+
+            const body = document.getElementById('attendeeListBody');
+
+            if (myEvents.length === 0) {
+                body.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📅</div>
+                        <p>No approved events yet</p>
+                        <span>Submit and get an event approved first.</span>
+                    </div>`;
+                return;
+            }
+
+            // Build one accordion per event
+            body.innerHTML = myEvents.map((ev, idx) => {
+                const evAttendees = myAttendees.filter(j => String(j.eventId) === String(ev.id));
+                const pending  = evAttendees.filter(j => (j.status || 'pending') === 'pending').length;
+                const approved = evAttendees.filter(j => j.status === 'approved').length;
+                const d    = ev.date ? new Date(ev.date) : null;
+                const dateStr = d ? d.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date';
+
+                const pendingPill  = pending  > 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ ${pending} pending</span>` : '';
+                const approvedPill = approved > 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;">✅ ${approved} attending</span>` : '';
+                const emptyPill    = evAttendees.length === 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#f1f5f9;color:#94a3b8;font-weight:700;">No requests</span>` : '';
+
+                const rows = evAttendees.length === 0
+                    ? `<div style="padding:18px 20px;text-align:center;color:#aaa;font-size:13px;">No attendee requests for this event yet.</div>`
+                    : evAttendees.map(j => {
+                        const status  = j.status || 'pending';
+                        const initial = (j.name || j.email || '?')[0].toUpperCase();
+                        const isMember = allOrgJoins.some(oj =>
+                            oj.orgId === myOrgId && oj.email === j.email && oj.status === 'approved');
+                        const isPendingMember = allOrgJoins.some(oj =>
+                            oj.orgId === myOrgId && oj.email === j.email && (oj.status || 'pending') === 'pending');
+
+                        const memberPill = isMember
+                            ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;">✅ Org Member</span>`
+                            : isPendingMember
+                            ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Join Pending</span>`
+                            : `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fee2e2;color:#991b1b;font-weight:700;">⚠️ Not in Org</span>`;
+
+                        let actionHtml = '';
+                        if (status === 'pending') {
+                            if (!isMember) {
+                                actionHtml = `
+                                    <button class="action-btn approve-btn do-approve-attendee" data-id="${j.id}" disabled style="opacity:.4;cursor:not-allowed;">Approve</button>
+                                    <button class="action-btn reject-btn do-reject-attendee"   data-id="${j.id}" disabled style="opacity:.4;cursor:not-allowed;">Decline</button>
+                                    <button class="action-btn reason-btn do-invite-member" data-email="${j.email}" data-name="${(j.name||'').replace(/"/g,'')}" style="font-size:11px;white-space:nowrap;">+ Add to Org First</button>`;
+                            } else {
+                                actionHtml = `
+                                    <button class="action-btn approve-btn do-approve-attendee" data-id="${j.id}">Approve</button>
+                                    <button class="action-btn reject-btn do-reject-attendee"   data-id="${j.id}">Decline</button>`;
+                            }
+                        } else if (status === 'approved') {
+                            actionHtml = `<span class="status-badge approved">✅ Approved</span>`;
+                        } else {
+                            actionHtml = `<span class="status-badge rejected">❌ Declined</span>`;
+                        }
+
+                        return `
+                        <div class="member-card" style="border-radius:0;border-left:none;border-right:none;border-top:none;margin-bottom:0;" data-join-id="${j.id}">
+                            <div class="member-card-left">
+                                <div class="member-avatar">${initial}</div>
+                                <div>
+                                    <p class="member-name">${j.name || 'Unknown'}</p>
+                                    <p class="member-meta">${j.email}</p>
+                                    <div style="margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;">${memberPill}</div>
+                                </div>
+                            </div>
+                            <div class="member-card-actions">${actionHtml}</div>
+                        </div>`;
+                    }).join('');
+
+                return `
+                <div class="ev-accordion" data-accordion-idx="${idx}">
+                    <div class="ev-accordion-header" onclick="toggleAccordion(${idx})">
+                        <div class="ev-accordion-header-left">
+                            <div class="event-date-pill" style="width:42px;height:42px;border-radius:10px;font-size:inherit;">
+                                <span class="ev-month">${d ? d.toLocaleString('default',{month:'short'}) : '—'}</span>
+                                <span class="ev-day">${d ? d.getDate() : '—'}</span>
+                            </div>
+                            <div>
+                                <div class="ev-accordion-title">${ev.title}</div>
+                                <div class="ev-accordion-meta">${dateStr}${ev.location ? ' · 📍 ' + ev.location : ''}</div>
+                                <div class="ev-accordion-pills" style="margin-top:4px;">${pendingPill}${approvedPill}${emptyPill}</div>
+                            </div>
+                        </div>
+                        <span class="ev-accordion-chevron" id="chev-${idx}">▼</span>
+                    </div>
+                    <div class="ev-accordion-body" id="acc-body-${idx}">
+                        ${rows}
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Wire approve / decline / invite buttons
+            body.querySelectorAll('.do-approve-attendee:not([disabled])').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const joins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+                    const idx   = joins.findIndex(j => j.id === btn.dataset.id);
+                    if (idx === -1) return;
+                    joins[idx].status = 'approved';
+                    localStorage.setItem('nunite_event_joins', JSON.stringify(joins));
+                    renderAttendees();
+                });
+            });
+            body.querySelectorAll('.do-reject-attendee:not([disabled])').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const joins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+                    const idx   = joins.findIndex(j => j.id === btn.dataset.id);
+                    if (idx === -1) return;
+                    joins[idx].status = 'rejected';
+                    localStorage.setItem('nunite_event_joins', JSON.stringify(joins));
+                    renderAttendees();
+                });
+            });
+            body.querySelectorAll('.do-invite-member').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const email = btn.dataset.email;
+                    const name  = btn.dataset.name || email;
+                    const orgJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+                    const exists   = orgJoins.some(j => j.orgId === myOrgId && j.email === email);
+                    if (exists) { alert(`${name} already has a membership request.`); renderAttendees(); return; }
+                    orgJoins.push({
+                        orgId: myOrgId, orgName: myOrgName, email, name,
+                        status: 'pending',
+                        reason: 'Added by leader from event attendee request.',
+                        joinedAt: new Date().toISOString()
+                    });
+                    localStorage.setItem('nunite_joins', JSON.stringify(orgJoins));
+                    alert(`✅ ${name} added to Members as Pending. Approve them in the Members tab first, then come back to approve their event attendance.`);
+                    renderAttendees();
+                    renderMembers();
+                    updateLeaderBell();
+                });
+            });
+        }
+
+        // Accordion toggle — global so onclick="" works
+        window.toggleAccordion = function(idx) {
+            const body = document.getElementById('acc-body-' + idx);
+            const chev = document.getElementById('chev-' + idx);
+            if (!body) return;
+            const isOpen = body.classList.contains('open');
+            body.classList.toggle('open', !isOpen);
+            chev.classList.toggle('open', !isOpen);
+        };
+
+        // Wire attendees tab render
+        document.querySelectorAll('.tab').forEach(tab => {
+            if (tab.dataset.section === 'ld-attendees') {
+                tab.addEventListener('click', () => renderAttendees());
+            }
+        });
+
         // ── INIT ──
         renderMembers();
+        renderAttendees();
+        updateLeaderBell();
 
     })();
     </script>
+
 </body>
 </html>

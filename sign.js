@@ -1,9 +1,11 @@
-import { supabase } from './supabase.js';
+import { supabase, supabaseAdmin } from './supabase.js';
+import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './auth.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
 
     // ── NAV AUTH STATE ──
-    const userFullName    = localStorage.getItem('userFullName');
+    const currentUser     = await getSessionUser();
+    const userFullName    = currentUser ? getDisplayName(currentUser) : '';
     const signedAsText    = document.getElementById('signed-as-text');
     const userNameDisplay = document.getElementById('user-name-display');
     const signUpLink      = document.getElementById('sign-up-link');
@@ -17,12 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
             signUpLink.style.display      = 'none';
             signOutBtn.style.display      = 'inline-block';
         }
-        signOutBtn.addEventListener('click', (e) => {
+        signOutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            localStorage.removeItem('userFullName');
-            localStorage.removeItem('userEmail');
-            localStorage.removeItem('isAdmin');
-            window.location.href = 'Index.html';
+            await signOutToLogin();
         });
     }
 
@@ -109,8 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         id:        data.user.id,
                         email:     email,
                         full_name: fullName,
-                        is_admin:  false,
                     }, { onConflict: 'id' });
+                    await supabaseAdmin.from('Students').upsert({
+                        email,
+                        full_name: fullName,
+                    }, { onConflict: 'email' });
 
                     alert('Account created! Please check your email to confirm your account, then sign in.');
                     window.location.href = 'sign_in.html';
@@ -123,12 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         id:        data.user.id,
                         email:     email,
                         full_name: fullName,
-                        is_admin:  false,
                     }, { onConflict: 'id' });
+                    await supabaseAdmin.from('Students').upsert({
+                        email,
+                        full_name: fullName,
+                    }, { onConflict: 'email' });
 
-                    localStorage.setItem('userFullName', fullName);
-                    localStorage.setItem('userEmail', email);
-                    localStorage.removeItem('isAdmin');
                     alert('Account created! Welcome to NUnite.');
                     window.location.href = 'Index.html';
                     return;
@@ -160,21 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = passwordInput.value;
             if (!email || !password) { alert('Please fill in both fields.'); return; }
 
-            // Admin shortcut
-            if (email === 'admin@nunite.com') {
-                if (password === 'adminpassword123') {
-                    localStorage.setItem('isAdmin', 'true');
-                    localStorage.setItem('userFullName', 'Admin');
-                    localStorage.setItem('userEmail', email);
-                    alert('Admin Sign In successful!');
-                    window.location.href = 'admindash.html';
-                } else {
-                    alert('Incorrect password. Please try again.');
-                }
-                return;
-            }
-
-            // Regular user sign in via Supabase
+            // All roles sign in through Supabase Auth. Role is resolved from email/leaders table.
             try {
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) { alert('Sign in failed: ' + error.message); return; }
@@ -186,13 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     id:        data.user.id,
                     email:     email,
                     full_name: fullName,
-                    is_admin:  false,
                 }, { onConflict: 'id' });
 
-                localStorage.setItem('userFullName', fullName);
-                localStorage.setItem('userEmail', email);
-                localStorage.removeItem('isAdmin');
-                window.location.href = 'Index.html';
+                window.location.href = email === ADMIN_EMAIL ? 'admindash.html' : 'Index.html';
 
             } catch (err) {
                 alert('Unexpected error: ' + err.message);

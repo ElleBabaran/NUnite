@@ -1,162 +1,165 @@
-function loadOrganizations() {
-    try {
-        const saved = JSON.parse(localStorage.getItem('nunite_organizations'));
-        // Admin saves with 'contactEmail', viewdetails expects 'email' — normalize
-        if (saved && saved.length > 0) {
-            return saved.map(o => ({ ...o, email: o.email || o.contactEmail || 'contact@national-u.edu.ph' }));
-        }
-    } catch {}
-    return defaultOrganizations;
+import { supabase, supabaseAdmin } from './supabase.js';
+import { getCurrentRole, getDisplayName } from './auth.js';
+
+let organizations = [];
+let currentOrg = null;
+let authState = { user: null, role: 'guest', leader: null };
+
+async function loadOrganizations() {
+    const { data, error } = await supabase.from('organizations').select('*').order('name');
+    if (error) {
+        console.error('loadOrganizations error:', error);
+        return [];
+    }
+    return data || [];
 }
 
-const organizations = loadOrganizations();
+document.addEventListener('DOMContentLoaded', async () => {
+    authState = await getCurrentRole();
+    organizations = await loadOrganizations();
 
-// Read login state from localStorage (set by sign.js on login)
-const isLoggedIn = !!localStorage.getItem('userFullName');
+    const orgId = new URLSearchParams(window.location.search).get('id');
+    const org = organizations.find(o => String(o.id) === String(orgId));
+    currentOrg = org;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const orgId = urlParams.get('id');
-    const org = organizations.find(o => o.id == orgId);
+    if (!org) return;
 
-    if (org) {
-        document.getElementById('orgName').innerText = org.name;
-        document.getElementById('orgNameAbout').innerText = org.name;
-        document.getElementById('orgCategory').innerText = org.category;
-        document.getElementById('orgTagline').innerText = `"${org.description}"`;
-        document.getElementById('orgDescription').innerText = org.fullDescription || org.description;
-        // Count approved members from joins only (no manual base count)
-        const allJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-        const approvedCount = allJoins.filter(j => String(j.orgId) === String(orgId) && j.status === 'approved').length;
-        document.getElementById('orgMemberCount').innerText = approvedCount;
-        document.getElementById('orgEmail').innerText = org.email || 'contact@national-u.edu.ph';
-        document.getElementById('orgEmail').href = `mailto:${org.email || 'contact@national-u.edu.ph'}`;
+    document.getElementById('orgName').innerText = org.name;
+    document.getElementById('orgNameAbout').innerText = org.name;
+    document.getElementById('orgCategory').innerText = org.category || '';
+    document.getElementById('orgCategoryBadge').innerText = org.category || 'General';
+    document.getElementById('orgTagline').innerText = `"${org.description || ''}"`;
+    document.getElementById('orgDescription').innerText = org.full_description || org.description || '';
 
-        // Support both admin-uploaded logo images and emoji logos
-        const logoEl = document.getElementById('orgLogo');
-        if (org.logoDataUrl) {
-            logoEl.innerHTML = `<img src="${org.logoDataUrl}" alt="${org.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
-            logoEl.style.fontSize = '0';
-        } else {
-            logoEl.innerText = org.logo || '🏫';
-        }
+    const { count } = await supabase
+        .from('joins')
+        .select('*', { count: 'exact', head: true })
+        .eq('org_id', orgId)
+        .eq('status', 'approved');
+    document.getElementById('orgMemberCount').innerText = count || 0;
+
+    const email = org.email || org.contact_email || 'contact@national-u.edu.ph';
+    document.getElementById('orgEmail').innerText = email;
+    document.getElementById('orgEmail').href = `mailto:${email}`;
+
+    const logoEl = document.getElementById('orgLogo');
+    if (org.logo_url) {
+        logoEl.innerHTML = `<img src="${org.logo_url}" alt="${org.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+        logoEl.style.fontSize = '0';
+    } else {
+        logoEl.innerText = org.logo_emoji || '🏫';
     }
 });
 
-function checkLogin(action) {
+window.checkLogin = async function(action) {
     const modal = document.getElementById('infoModal');
     const content = document.getElementById('modalContent');
     const loginGate = document.getElementById('loginGate');
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const orgId = urlParams.get('id');
-    const org = organizations.find(o => o.id == orgId);
+    const orgId = new URLSearchParams(window.location.search).get('id');
+    const org = currentOrg || organizations.find(o => String(o.id) === String(orgId));
 
     modal.classList.remove('hidden');
 
-    if (isLoggedIn) {
-        // --- SIGNED IN VIEW ---
-        loginGate.classList.add('hidden');
-        content.style.filter = "none";
-
-        // Check if user is already an approved member of this org
-        const allJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-        const userEmail = localStorage.getItem('userEmail') || '';
-        const existingJoin = allJoins.find(j => String(j.orgId) === String(orgId) && j.email === userEmail);
-        const isApprovedMember = existingJoin && existingJoin.status === 'approved';
-        const isPendingMember = existingJoin && (existingJoin.status || 'pending') === 'pending';
-
-        // ── NEW: leaders can't join their own org ──
-        const leaderOrgName = localStorage.getItem('leaderOrgName') || '';
-        const isLeaderOfThisOrg = leaderOrgName && org && org.name === leaderOrgName;
-
-        if (action === 'join') {
-            if (isLeaderOfThisOrg) {
-                content.innerHTML = `
-                    <h3 class="info-title">You're the Leader! 🏅</h3>
-                    <p style="font-size: 13px; color: #64748b; margin-top: 12px;">You are the student leader of <strong>${org.name}</strong>. Leaders don't need to apply as members.</p>
-                `;
-            } else if (isApprovedMember) {
-                content.innerHTML = `
-                    <h3 class="info-title">You're Already a Member! ✅</h3>
-                    <p style="font-size: 13px; color: #64748b; margin-top: 12px;">You are already an approved member of <strong>${org.name}</strong>. No need to apply again.</p>
-                `;
-            } else if (isPendingMember) {
-                content.innerHTML = `
-                    <h3 class="info-title">Application Pending ⏳</h3>
-                    <p style="font-size: 13px; color: #64748b; margin-top: 12px;">Your application to <strong>${org.name}</strong> is still being reviewed by the student leader.</p>
-                `;
-            } else {
-                content.innerHTML = `
-                    <h3 class="info-title">Apply for ${org.name}</h3>
-                    <p style="font-size: 13px; color: #64748b;">Tell the officers why you'd like to join.</p>
-                    <textarea style="width:100%; height:100px; border:1px solid #ddd; border-radius:10px; margin-top:15px; padding:10px; font-family:inherit;" placeholder="I want to join because..."></textarea>
-                    <button onclick="submitApp()" class="modal-btn btn-primary">Submit Application</button>
-                `;
-            }
-        } else {
-            content.innerHTML = `
-                <h3 class="info-title">Contact Information</h3>
-                <div style="margin-top:20px;">
-                    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#f8fafc; border-radius:10px; margin-bottom:15px;">
-                        <i class="fa-solid fa-user" style="color:#6366f1;"></i> <b>Contact Person:</b> ${org.contactPerson || 'TBD'}
-                    </div>
-                    <a href="mailto:${org.email}" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:#1e1b4b; padding:10px; background:#f8fafc; border-radius:10px;">
-                        <i class="fa-solid fa-envelope" style="color:#4f46e5;"></i> <b>Email:</b> ${org.email || 'contact@national-u.edu.ph'}
-                    </a>
-                </div>
-            `;
-        }
-    } else {
-        // --- GUEST VIEW (LOCKED) ---
+    if (!authState.user) {
         loginGate.classList.remove('hidden');
-        content.style.filter = "blur(4px)";
+        content.style.filter = 'blur(4px)';
         content.innerHTML = `
             <h3 class="info-title">Locked Content</h3>
-            <p>To see the joining process and contact details for this organization, please sign in.</p>
-            <ul style="margin-top:10px; line-height:2;">
-                <li>• Application Requirements</li>
-                <li>• Official Email Address</li>
-                <li>• Social Media Links</li>
-            </ul>
-        `;
-    }
-}
-
-function submitApp() {
-    const userFullName = localStorage.getItem('userFullName');
-    const userEmail = localStorage.getItem('userEmail');
-    
-    if (!userFullName) {
-        alert("Please sign in first!");
+            <p>To see the joining process and contact details for this organization, please sign in.</p>`;
         return;
     }
 
-    const application = {
-        id: Date.now(),
-        orgId: String(new URLSearchParams(window.location.search).get('id')),
-        orgName: document.getElementById('orgName').innerText,
-        name: userFullName,
-        email: userEmail,
+    loginGate.classList.add('hidden');
+    content.style.filter = 'none';
+
+    if (action !== 'join') {
+        content.innerHTML = `
+            <h3 class="info-title">Contact Information</h3>
+            <div style="margin-top:20px;">
+                <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#f8fafc; border-radius:10px; margin-bottom:15px;">
+                    <i class="fa-solid fa-user" style="color:#6366f1;"></i>
+                    <span style="color:#1e1b4b;font-weight:700;">Contact Person:</span>
+                    <span style="color:#334155;font-weight:500;">${org.contact_person || 'TBD'}</span>
+                </div>
+                <a href="mailto:${org.email || org.contact_email || ''}" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:#1e1b4b; padding:10px; background:#f8fafc; border-radius:10px;">
+                    <i class="fa-solid fa-envelope" style="color:#4f46e5;"></i>
+                    <span style="color:#1e1b4b;font-weight:700;">Email:</span>
+                    <span style="color:#334155;font-weight:500;">${org.email || org.contact_email || 'contact@national-u.edu.ph'}</span>
+                </a>
+            </div>`;
+        return;
+    }
+
+    if (authState.role === 'admin') {
+        content.innerHTML = `<h3 class="info-title">Admin Account</h3><p style="font-size:13px;color:#64748b;margin-top:12px;">Admin accounts cannot apply to organizations.</p>`;
+        return;
+    }
+
+    if (String(authState.leader?.org_id || '') === String(orgId)) {
+        content.innerHTML = `<h3 class="info-title">You're the Leader!</h3><p style="font-size:13px;color:#64748b;margin-top:12px;">You are the student leader of <strong>${org.name}</strong>. Leaders don't need to apply as members.</p>`;
+        return;
+    }
+
+    const { data: existingJoin } = await supabase
+        .from('joins')
+        .select('*')
+        .eq('org_id', orgId)
+        .eq('email', authState.user.email)
+        .maybeSingle();
+
+    if (existingJoin?.status === 'approved') {
+        content.innerHTML = `<h3 class="info-title">You're Already a Member!</h3><p style="font-size:13px;color:#64748b;margin-top:12px;">You are already an approved member of <strong>${org.name}</strong>.</p>`;
+    } else if ((existingJoin?.status || '') === 'pending') {
+        content.innerHTML = `<h3 class="info-title">Application Pending</h3><p style="font-size:13px;color:#64748b;margin-top:12px;">Your application to <strong>${org.name}</strong> is still being reviewed.</p>`;
+    } else {
+        content.innerHTML = `
+            <h3 class="info-title">Apply for ${org.name}</h3>
+            <p style="font-size:13px;color:#a5b4fc;margin-top:6px;">Tell the officers why you'd like to join.</p>
+            <textarea class="join-textarea" placeholder="I want to join because..."></textarea>
+            <button onclick="submitApp()" class="modal-btn btn-primary">Submit Application</button>`;
+    }
+};
+
+window.submitApp = async function() {
+    if (!authState.user) {
+        alert('Please sign in first!');
+        return;
+    }
+
+    const orgId = new URLSearchParams(window.location.search).get('id');
+    const orgName = document.getElementById('orgName').innerText;
+    const reason = document.querySelector('textarea') ? document.querySelector('textarea').value.trim() : '';
+
+    const { data: existing } = await supabase
+        .from('joins')
+        .select('id')
+        .eq('org_id', orgId)
+        .eq('email', authState.user.email)
+        .maybeSingle();
+
+    if (existing) {
+        alert('You have already applied for this organization.');
+        return;
+    }
+
+    const { error } = await supabaseAdmin.from('joins').insert({
+        org_id: parseInt(orgId, 10),
+        org_name: orgName,
+        name: getDisplayName(authState.user),
+        email: authState.user.email,
         status: 'pending',
-        reason: document.querySelector('textarea') ? document.querySelector('textarea').value.trim() : '',
-        appliedAt: new Date().toISOString()
-    };
+        reason,
+    });
 
-    const existingJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-    
-    // Check kung nakapag-apply na para hindi doble
-    const alreadyApplied = existingJoins.some(j => j.orgId == application.orgId && j.email === userEmail);
-    if (alreadyApplied) {
-        alert("You have already applied for this organization.");
+    if (error) {
+        alert('Error submitting application: ' + error.message);
         return;
     }
 
-    existingJoins.push(application);
-    localStorage.setItem('nunite_joins', JSON.stringify(existingJoins));
-    alert("Application sent to Student Leader!");
-}
+    alert('Application sent to Student Leader!');
+    window.closeModal();
+};
 
-function closeModal() {
+window.closeModal = function() {
     document.getElementById('infoModal').classList.add('hidden');
-}
+};

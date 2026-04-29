@@ -1,32 +1,34 @@
 import { supabase, supabaseAdmin } from './supabase.js';
+import { ADMIN_EMAIL, getSessionUser, signOutToLogin } from './auth.js';
 
 // =============================================
-// NUnite Admin Dashboard - admin.js
+// NUnite Admin Dashboard - admin.js  (Supabase)
 // =============================================
 
-const STORAGE_KEY = 'nunite_organizations';
-
-function getOrgs() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
-}
-function saveOrgs(orgs) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(orgs));
-}
-function nextId(orgs) {
-    return orgs.length > 0 ? Math.max(...orgs.map(o => o.id)) + 1 : 1;
+// ── Supabase helpers ──
+async function getOrgs() {
+    const { data, error } = await supabaseAdmin.from('organizations').select('*').order('id');
+    if (error) { console.error('getOrgs error:', error); return []; }
+    return data || [];
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+async function getEvents() {
+    const { data, error } = await supabaseAdmin.from('events').select('*').order('id');
+    if (error) { console.error('getEvents error:', error); return []; }
+    return data || [];
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
 
     // ---- ADMIN GUARD ----
-    if (localStorage.getItem('isAdmin') !== 'true') {
+    const adminUser = await getSessionUser();
+    if (!adminUser || adminUser.email !== ADMIN_EMAIL) {
         alert('Access denied. Admins only.');
         window.location.href = 'sign_in.html';
         return;
     }
 
-    // ---- GET ALL DOM REFS FIRST (fixes assign leader modal bug) ----
+    // ---- GET ALL DOM REFS ----
     const orgContainer   = document.getElementById('orgTableBody');
     const eventContainer = document.getElementById('eventTableBody');
     const orgModal       = document.getElementById('organizationModal');
@@ -40,21 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let editingOrgId   = null;
     let assigningOrgId = null;
 
-    // ---- EVENT HELPERS ----
-    function getEvents() {
-        try { return JSON.parse(localStorage.getItem('nunite_events') || '[]'); }
-        catch { return []; }
-    }
-    function saveEvents(evs) {
-        localStorage.setItem('nunite_events', JSON.stringify(evs));
-    }
-
     // ---- GET USERS from Supabase profiles table ----
     async function getAllUsers() {
         try {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, email, full_name')
+                .select('id, email, full_name');
             if (error) { console.error('Supabase fetch error:', error); return []; }
             return (data || []).map(u => ({
                 id:       u.id,
@@ -69,17 +62,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---- RENDER ORGS ----
-    function renderOrgs() {
+    async function renderOrgs() {
         if (!orgContainer) return;
-        const orgs = getOrgs();
+        const orgs = await getOrgs();
+
         const totalEl    = document.getElementById('stat-total-orgs');
         const approvedEl = document.getElementById('stat-approved-orgs');
         if (totalEl)    totalEl.textContent    = orgs.length;
         if (approvedEl) approvedEl.textContent = orgs.filter(o => o.approved).length;
+
+        // Total approved members from joins table
         const totalMembersEl = document.getElementById('stat-total-members');
         if (totalMembersEl) {
-            const joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-            totalMembersEl.textContent = joins.filter(j => j.status === 'approved').length;
+            const { count } = await supabaseAdmin
+                .from('joins')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'approved');
+            totalMembersEl.textContent = count || 0;
         }
 
         if (orgs.length === 0) {
@@ -90,13 +89,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="org-card-horizontal" data-id="${org.id}">
                 <div class="org-card-left">
                     <div class="org-logo-wrapper">
-                        ${org.logoDataUrl
-                            ? `<img src="${org.logoDataUrl}" alt="${org.name} Logo" style="width:100%;height:100%;object-fit:cover;">`
-                            : `<div style="font-size:2rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${org.logoEmoji || '🏫'}</div>`}
+                        ${org.logo_url
+                            ? `<img src="${org.logo_url}" alt="${org.name} Logo" style="width:100%;height:100%;object-fit:cover;">`
+                            : `<div style="font-size:2rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${org.logo_emoji || '🏫'}</div>`}
                     </div>
                     <div>
                         <h3 class="org-card-title">${org.name}</h3>
-                        <span style="font-size:12px;color:#666;">${org.category} · ${org.department}</span>
+                        <span style="font-size:12px;color:#666;">${org.category || ''} · ${org.department || ''}</span>
                     </div>
                 </div>
                 <div class="org-card-actions">
@@ -110,35 +109,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---- RENDER EVENTS ----
-    function renderEvents() {
+    async function renderEvents() {
         if (!eventContainer) return;
-        const events = getEvents();
+        const events = await getEvents();
         const filterEl = document.getElementById('eventStatusFilter');
         const activeFilter = filterEl ? filterEl.value : 'needs_approval';
 
         let filtered = [];
-        let sectionLabel = '';
-        let sectionColor = '';
-        let sectionIcon  = '';
-
         if (activeFilter === 'needs_approval') {
             filtered = events.filter(ev => !ev.approved && ev.rejected !== true);
-            sectionLabel = 'Needs Approval';
-            sectionColor = '#fef9c3';
-            sectionIcon  = '⏳';
         } else if (activeFilter === 'approved') {
             filtered = events.filter(ev => ev.approved);
-            sectionLabel = 'Approved Events';
-            sectionColor = '#dcfce7';
-            sectionIcon  = '✅';
         } else if (activeFilter === 'not_approved') {
             filtered = events.filter(ev => ev.rejected === true);
-            sectionLabel = 'Not Approved (Rejected)';
-            sectionColor = '#fee2e2';
-            sectionIcon  = '❌';
         }
-
-        // Update index bell is handled by index.html itself
 
         if (filtered.length === 0) {
             eventContainer.innerHTML = `<div style="text-align:center;padding:40px;color:#888;"><p style="font-size:18px;">No events in this category.</p></div>`;
@@ -155,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderEventCard(ev, status) {
         const dateStr = ev.date ? new Date(ev.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'No date';
-        const source  = (ev.createdBy === 'leader' ? '👤 Leader' : '🔑 Admin') + ' · ' + ev.org;
+        const source  = (ev.created_by === 'leader' ? '👤 Leader' : '🔑 Admin') + ' · ' + (ev.org || '');
         const icon    = status === 'rejected' ? '❌' : status === 'approved' ? '✅' : '📅';
         return `<div class="org-card-horizontal" data-id="${ev.id}">
             <div class="org-card-left">
@@ -199,31 +183,23 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', async e => {
                 if (!confirm('Delete this organization? This cannot be undone.')) return;
                 const id = parseInt(e.target.closest('.org-card-horizontal').dataset.id);
-                // Remove leader from Supabase for this org
                 try {
+                    // Remove leader
                     await supabaseAdmin.from('leaders').delete().eq('org_id', id);
-                } catch(err) { console.warn('Could not remove leader from Supabase:', err); }
-                // Remove all join requests for this org
-                try {
-                    const joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-                    localStorage.setItem('nunite_joins', JSON.stringify(joins.filter(j => String(j.orgId) !== String(id))));
-                } catch(err) {}
-                // Remove all events for this org
-                try {
-                    const org = getOrgs().find(o => o.id === id);
-                    if (org) {
-                        const evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
-                        const deletedEventIds = evs.filter(ev => ev.org === org.name).map(ev => String(ev.id));
-                        localStorage.setItem('nunite_events', JSON.stringify(evs.filter(ev => ev.org !== org.name)));
-                        // Also remove event join requests for those events
-                        if (deletedEventIds.length > 0) {
-                            const evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
-                            localStorage.setItem('nunite_event_joins', JSON.stringify(evJoins.filter(j => !deletedEventIds.includes(String(j.eventId)))));
-                        }
+                    // Remove join requests
+                    await supabaseAdmin.from('joins').delete().eq('org_id', id);
+                    // Remove event_joins for this org's events
+                    const { data: orgEvents } = await supabaseAdmin.from('events').select('id').eq('org_id', id);
+                    if (orgEvents && orgEvents.length > 0) {
+                        const eventIds = orgEvents.map(e => e.id);
+                        await supabaseAdmin.from('event_joins').delete().in('event_id', eventIds);
                     }
-                } catch(err) {}
-                saveOrgs(getOrgs().filter(o => o.id !== id));
-                renderOrgs();
+                    // Remove events
+                    await supabaseAdmin.from('events').delete().eq('org_id', id);
+                    // Remove org
+                    await supabaseAdmin.from('organizations').delete().eq('id', id);
+                } catch(err) { console.warn('Delete org error:', err); }
+                await renderOrgs();
             });
         });
     }
@@ -231,44 +207,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- EVENT LISTENERS ----
     function attachEventListeners() {
         document.querySelectorAll('.approve-event').forEach(btn => {
-            btn.addEventListener('click', e => {
-                const id  = parseInt(e.target.closest('.org-card-horizontal').dataset.id);
-                const evs = getEvents().map(ev => ev.id === id ? Object.assign({}, ev, { approved: true }) : ev);
-                saveEvents(evs);
-                renderEvents();
+            btn.addEventListener('click', async e => {
+                const id = parseInt(e.target.closest('.org-card-horizontal').dataset.id);
+                await supabaseAdmin.from('events').update({ approved: true, rejected: false }).eq('id', id);
+                await renderEvents();
             });
         });
         document.querySelectorAll('.reject-event').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', async e => {
                 const id = parseInt(e.target.closest('.org-card-horizontal').dataset.id);
                 if (!confirm('Reject this event?')) return;
-                const evs = getEvents().map(ev => ev.id === id ? Object.assign({}, ev, { approved: false, rejected: true }) : ev);
-                saveEvents(evs);
-                renderEvents();
-                
+                await supabaseAdmin.from('events').update({ approved: false, rejected: true }).eq('id', id);
+                await renderEvents();
             });
         });
         document.querySelectorAll('.delete-event').forEach(btn => {
-            btn.addEventListener('click', e => {
+            btn.addEventListener('click', async e => {
                 const id = parseInt(e.target.closest('.org-card-horizontal').dataset.id);
                 if (!confirm('Remove this event?')) return;
-                saveEvents(getEvents().filter(ev => ev.id !== id));
-                renderEvents();
+                // Also delete event_joins for this event
+                await supabaseAdmin.from('event_joins').delete().eq('event_id', id);
+                await supabaseAdmin.from('events').delete().eq('id', id);
+                await renderEvents();
             });
         });
     }
 
     // ---- VIEW MODAL ----
-    function openViewModal(id) {
-        const org = getOrgs().find(o => o.id === id);
+    async function openViewModal(id) {
+        const orgs = await getOrgs();
+        const org = orgs.find(o => o.id === id);
         if (!org) return;
         document.getElementById('viewOrgName').textContent     = org.name;
         document.getElementById('viewOrgTagline').textContent  = org.description || '';
-        document.getElementById('viewOrgMembers').textContent  = (() => { const joins = JSON.parse(localStorage.getItem('nunite_joins')||'[]'); return joins.filter(j=>j.orgId==id&&j.status==='approved').length; })() + ' members';
-        document.getElementById('viewOrgEmail').textContent    = org.email || org.contactEmail || 'N/A';
+
+        // Member count from Supabase
+        const { count } = await supabaseAdmin
+            .from('joins')
+            .select('*', { count: 'exact', head: true })
+            .eq('org_id', id)
+            .eq('status', 'approved');
+        document.getElementById('viewOrgMembers').textContent = (count || 0) + ' members';
+
+        document.getElementById('viewOrgEmail').textContent    = org.email || org.contact_email || 'N/A';
         document.getElementById('viewOrgLocation').textContent = org.location || 'N/A';
         const logoEl = document.getElementById('viewOrgLogo');
-        if (org.logoDataUrl) { logoEl.src = org.logoDataUrl; logoEl.style.display = 'block'; }
+        if (org.logo_url) { logoEl.src = org.logo_url; logoEl.style.display = 'block'; }
         else { logoEl.style.display = 'none'; }
         const tagContainer = document.getElementById('viewOrgTags');
         if (tagContainer) {
@@ -279,8 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---- EDIT MODAL ----
-    function openEditModal(id) {
-        const org = getOrgs().find(o => o.id === id);
+    async function openEditModal(id) {
+        const orgs = await getOrgs();
+        const org = orgs.find(o => o.id === id);
         if (!org) return;
         editingOrgId = id;
         if (modalTitle) modalTitle.textContent = 'Edit Organization';
@@ -289,14 +274,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('orgDept').value              = org.department      || 'all';
         document.getElementById('orgCategory').value          = org.category        || 'all';
         document.getElementById('orgDescription').value       = org.description     || '';
-        document.getElementById('orgFullDescription').value   = org.fullDescription || '';
-        document.getElementById('contactPerson').value        = org.contactPerson   || '';
-        document.getElementById('contactEmail').value         = org.contactEmail    || '';
+        document.getElementById('orgFullDescription').value   = org.full_description || '';
+        document.getElementById('contactPerson').value        = org.contact_person   || '';
+        document.getElementById('contactEmail').value         = org.contact_email    || '';
         document.getElementById('website').value              = org.website         || '';
         document.getElementById('location').value             = org.location        || '';
-        document.getElementById('applicationsStatus').checked = org.applicationsOpen !== false;
+        document.getElementById('applicationsStatus').checked = org.applications_open !== false;
         const preview = document.getElementById('logo-preview');
-        if (org.logoDataUrl) { preview.src = org.logoDataUrl; preview.style.display = 'block'; }
+        if (org.logo_url) { preview.src = org.logo_url; preview.style.display = 'block'; }
         else { preview.style.display = 'none'; }
         orgModal.style.display = 'block';
     }
@@ -304,9 +289,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- ASSIGN LEADER MODAL ----
     function openAssignModal(orgId) {
         assigningOrgId = orgId;
-        const org = getOrgs().find(o => o.id === orgId);
-        if (!org) return;
-        document.getElementById('assignModalOrgName').textContent = org.name;
+        getOrgs().then(orgs => {
+            const org = orgs.find(o => o.id === orgId);
+            if (!org) return;
+            document.getElementById('assignModalOrgName').textContent = org.name;
+        });
         document.getElementById('studentSearchInput').value = '';
         const listEl = document.getElementById('studentSearchResults');
         listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:13px;">Loading students...</div>';
@@ -318,7 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const listEl = document.getElementById('studentSearchResults');
         listEl.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-size:13px;">⏳ Loading...</div>';
 
-        // Fetch all non-admin students from Supabase
         const users = await getAllUsers();
         if (users.length === 0) {
             listEl.innerHTML = `
@@ -329,7 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Fetch current leaders from Supabase
         const { data: leadersData } = await supabase.from('leaders').select('*');
         const leaders = leadersData || [];
 
@@ -376,7 +361,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const email      = btn.dataset.email;
                 const name       = btn.dataset.name;
                 const isRemoving = btn.classList.contains('remove-leader-btn');
-                const org        = getOrgs().find(o => o.id === assigningOrgId);
+                const orgs       = await getOrgs();
+                const org        = orgs.find(o => o.id === assigningOrgId);
 
                 if (isRemoving) {
                     const { error } = await supabaseAdmin
@@ -387,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (error) { alert('Error removing leader: ' + error.message); return; }
                     alert(name + ' has been removed as leader.');
                 } else {
-                    // Remove existing leader for this org first, then insert new
                     await supabaseAdmin.from('leaders').delete().eq('org_id', assigningOrgId);
                     const { error } = await supabaseAdmin.from('leaders').insert({
                         email:    email,
@@ -396,8 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         org_name: org ? org.name : '',
                     });
                     if (error) { alert('Error assigning leader: ' + error.message); return; }
-                    // Set bell notification flag for the newly assigned leader
-                    localStorage.setItem('nunite_leader_newassign_' + email, 'true');
                     alert(name + ' assigned as leader of ' + (org ? org.name : '') + '!');
                 }
                 await renderStudentList(document.getElementById('studentSearchInput').value);
@@ -425,9 +408,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---- ADD EVENT BUTTON ----
-    document.getElementById('addEventBtn').addEventListener('click', () => {
+    document.getElementById('addEventBtn').addEventListener('click', async () => {
         eventForm.reset();
-        const orgs   = getOrgs();
+        const orgs   = await getOrgs();
         const select = document.getElementById('eventOrg');
         if (select) {
             select.innerHTML = '<option value="">-- Select Organization --</option>';
@@ -480,65 +463,70 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---- SAVE ORG ----
-    orgForm.addEventListener('submit', e => {
+    orgForm.addEventListener('submit', async e => {
         e.preventDefault();
         const preview    = document.getElementById('logo-preview');
-        const logoDataUrl = (preview && preview.style.display !== 'none' && preview.src && !preview.src.endsWith('#'))
+        const logoUrl = (preview && preview.style.display !== 'none' && preview.src && !preview.src.endsWith('#'))
             ? preview.src : null;
 
         const orgData = {
-            name:             document.getElementById('orgName').value.trim(),
-            department:       document.getElementById('orgDept').value,
-            category:         document.getElementById('orgCategory').value,
-            description:      document.getElementById('orgDescription').value.trim(),
-            fullDescription:  document.getElementById('orgFullDescription').value.trim(),
-            contactPerson:    document.getElementById('contactPerson').value.trim(),
-            contactEmail:     document.getElementById('contactEmail').value.trim(),
-            email:            document.getElementById('contactEmail').value.trim(),
-            website:          document.getElementById('website').value.trim(),
-            location:         document.getElementById('location').value.trim(),
-            applicationsOpen: document.getElementById('applicationsStatus').checked,
-            approved:         document.getElementById('applicationsStatus').checked,
-            logoDataUrl:      logoDataUrl,
+            name:              document.getElementById('orgName').value.trim(),
+            department:        document.getElementById('orgDept').value,
+            category:          document.getElementById('orgCategory').value,
+            description:       document.getElementById('orgDescription').value.trim(),
+            full_description:  document.getElementById('orgFullDescription').value.trim(),
+            contact_person:    document.getElementById('contactPerson').value.trim(),
+            contact_email:     document.getElementById('contactEmail').value.trim(),
+            email:             document.getElementById('contactEmail').value.trim(),
+            website:           document.getElementById('website').value.trim(),
+            location:          document.getElementById('location').value.trim(),
+            applications_open: document.getElementById('applicationsStatus').checked,
+            approved:          document.getElementById('applicationsStatus').checked,
+            logo_url:          logoUrl,
         };
 
         if (!orgData.name) { alert('Organization name is required.'); return; }
 
-        let orgs       = getOrgs();
         const wasEditing = editingOrgId;
         if (editingOrgId !== null) {
-            orgs = orgs.map(o => o.id === editingOrgId ? Object.assign({}, o, orgData) : o);
+            const { error } = await supabaseAdmin
+                .from('organizations')
+                .update(orgData)
+                .eq('id', editingOrgId);
+            if (error) { alert('Error updating org: ' + error.message); return; }
         } else {
-            orgData.id = nextId(orgs);
-            orgs.push(orgData);
+            const { error } = await supabaseAdmin
+                .from('organizations')
+                .insert(orgData);
+            if (error) { alert('Error creating org: ' + error.message); return; }
         }
-        saveOrgs(orgs);
-        renderOrgs();
+        await renderOrgs();
         orgModal.style.display = 'none';
         editingOrgId = null;
         alert(wasEditing !== null ? 'Organization updated!' : 'Organization saved!');
     });
 
     // ---- SAVE EVENT (admin = auto-approved) ----
-    eventForm.addEventListener('submit', e => {
+    eventForm.addEventListener('submit', async e => {
         e.preventDefault();
         const orgSelect       = document.getElementById('eventOrg');
+        const selectedOrgId   = orgSelect ? parseInt(orgSelect.value) : null;
         const selectedOrgName = orgSelect ? orgSelect.options[orgSelect.selectedIndex].text : 'Admin';
         const newEvent = {
-            id:          Date.now(),
             title:       document.getElementById('eventTitle').value.trim(),
             description: document.getElementById('eventDescription').value.trim(),
-            date:        document.getElementById('eventDateTime').value,
+            date:        document.getElementById('eventDateTime').value || null,
             org:         selectedOrgName || 'Admin',
+            org_id:      selectedOrgId || null,
             location:    document.getElementById('eventLocation').value.trim(),
             visibility:  document.getElementById('eventVisibility').value || 'everyone',
             approved:    true,
-            createdBy:   'admin',
+            rejected:    false,
+            created_by:  'admin',
         };
-        const evs = getEvents();
-        evs.push(newEvent);
-        saveEvents(evs);
-        renderEvents();
+        const { error } = await supabaseAdmin.from('events').insert(newEvent);
+        if (error) { alert('Error adding event: ' + error.message); return; }
+        await renderEvents();
         eventModal.style.display = 'none';
         alert('Event added and published!');
     });
@@ -547,7 +535,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterSel = document.getElementById('eventStatusFilter');
     if (filterSel) {
         filterSel.addEventListener('change', () => {
-            // Make sure Events tab is active
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelector('[data-section="events"]')?.classList.add('active');
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
@@ -572,15 +559,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ---- SIGN OUT ----
-    document.getElementById('adminSignOutBtn').addEventListener('click', () => {
-        localStorage.removeItem('userFullName');
-        localStorage.removeItem('isAdmin');
-        window.location.href = 'sign_in.html';
+    document.getElementById('adminSignOutBtn').addEventListener('click', async () => {
+        await signOutToLogin();
     });
-
 
     // ---- INIT ----
     renderOrgs();
     renderEvents();
-    
+
 });

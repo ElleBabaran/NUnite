@@ -512,13 +512,5 @@
     </style>
 
     <script type="module" src="admin.js"></script>
-    <script>
-        // Admin Sign Out - clears localStorage session
-        document.getElementById('adminSignOutBtn')?.addEventListener('click', () => {
-            localStorage.removeItem('userFullName');
-            localStorage.removeItem('isAdmin');
-            window.location.href = 'sign_in.html';
-        });
-    </script>
 </body>
 </html>

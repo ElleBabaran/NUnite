@@ -456,6 +456,9 @@
                         }
                     }
 
+                    // Full formatted date string e.g. "Monday, January 20, 2025"
+                    const fullDate = d ? d.toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+
                     return `
                     <div class="bg-white/10 border border-white/20 rounded-2xl p-6 flex gap-5 items-start hover:bg-white/15 transition-all" style="min-height:140px;">
                         <div class="flex-shrink-0 w-16 rounded-xl overflow-hidden border border-white/20 text-center" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
@@ -470,7 +473,8 @@
                             </div>
                             <div class="flex flex-col gap-1 mt-auto">
                                 <p class="text-indigo-300 text-xs font-semibold">Org: ${ev.org}</p>
-                                ${time   ? `<p class="text-white/50 text-xs">🕐 ${weekday}${weekday ? ', ' : ''}${time}</p>` : ''}
+                                ${d ? `<p class="text-white/70 text-xs">📅 ${fullDate}</p>` : ''}
+                                ${time ? `<p class="text-white/70 text-xs">🕐 ${time}</p>` : ''}
                                 ${ev.location ? `<p class="text-white/50 text-xs">📍 ${ev.location}</p>` : ''}
                                 ${joinBtnHtml}
                             </div>

@@ -4,125 +4,301 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organization Details | NUnite</title>
-    <link rel="stylesheet" href="view.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Small fix for the logo if using Emojis from your data */
-        .logo-emoji {
-            font-size: 4rem;
-            margin-right: 1.5rem;
-            background: #f3f4f6;
-            padding: 1rem;
+        body {
+            background-color: #0f172a;
+            color: #ffffff;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .logo-gradient {
+            background: linear-gradient(to right, #FFD700 0%, #FFD700 35%, #8A2BE2 70%, #0000FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-card {
+            background: rgba(30, 27, 75, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
             border-radius: 1rem;
+        }
+
+        .org-logo-wrap {
+            width: 72px;
+            height: 72px;
+            border-radius: 1rem;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 2rem;
+            flex-shrink: 0;
         }
+
+        .badge {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #a5b4fc;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 999px;
+            text-transform: capitalize;
+            letter-spacing: 0.03em;
+        }
+
+        .btn-join {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: #fff;
+            border: none;
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+        .btn-join:hover { opacity: 0.85; }
+
+        .btn-contact {
+            background: rgba(255,255,255,0.07);
+            color: #c7d2fe;
+            border: 1px solid rgba(255,255,255,0.12);
+            padding: 0.5rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-contact:hover { background: rgba(255,255,255,0.13); }
+
+        .section-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #6366f1;
+            margin-bottom: 0.5rem;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            margin: 1.25rem 0;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: #94a3b8;
+        }
+        .info-row i { color: #6366f1; width: 14px; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-overlay.hidden { display: none; }
+        .modal-box {
+            background: #1e1b4b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute; top: 1rem; right: 1rem;
+            background: none; border: none; color: #94a3b8;
+            font-size: 1.25rem; cursor: pointer;
+        }
+        .modal-close:hover { color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <header class="header" style="display: flex; align-items: center; justify-content: flex-start; gap: 15px; margin-bottom: 2rem; width: 100%;">
-    <a href="index.html" class="back-link" style="display: flex; align-items: center; text-decoration: none; color: inherit;">
-        <img src="/image/back.png" alt="back icon" class="button-icon" style="height: 20px; width: auto; margin-right: 8px;"> 
-        <span style="font-weight: 600;">Back</span>
-    </a>
+    <!-- NAV -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-[#1e1b4b]/90 backdrop-blur-sm border-b border-white/10">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm font-semibold">
+                    <i class="fa-solid fa-arrow-left text-xs"></i>
+                    <span>Back</span>
+                </a>
+                <div class="w-px h-5 bg-white/15"></div>
+                <h1 class="text-xl font-bold logo-gradient tracking-tight">NUnite</h1>
+                <div class="w-px h-5 bg-white/15"></div>
+                <span class="text-white/50 text-sm">
+                    Organizations &rsaquo; <span id="orgCategory" class="text-white/80 capitalize">Loading...</span>
+                </span>
+            </div>
+        </div>
+    </nav>
 
-    <div style="width: 1px; height: 24px; background-color: #e2e8f0;"></div>
+    <div class="min-h-screen pt-20 pb-12">
+        <div class="container mx-auto px-4 max-w-5xl">
 
-    <h1 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1e1b4b; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-        Organizations 
-        <span id="orgCategory" style="text-transform: capitalize; color: #000000; font-weight: 400; opacity: 0.7;">Category</span>
-    </h1>
-</header>
-</header>
+            <!-- ORG HEADER CARD -->
+            <div class="glass-card p-6 mb-6 animate-fade-in">
+                <div class="flex flex-col sm:flex-row gap-5 items-start">
 
-        <section class="card organization-card">
-            <div class="organization-header">
-                <div id="orgLogo" class="logo-emoji"></div>
-                
-                <div class="organization-info">
-                    <h2 id="orgName">Loading Organization...</h2>
-                    <p id="orgTagline">"Loading description..."</p>
-                    <div class="details">
-                        <span>
-                            <img src="image/group.png" alt="members icon" class="detail-icon"> 
-                            <span id="orgMemberCount">0</span> members
-                        </span>
-                        <span>
-                            <img src="image/point.png" alt="location icon" class="detail-icon"> 
-                            NU Manila, 550 M.F. Jhocson Street, Sampaloc, Manila
-                        </span>
-                    </div>
-                    <div class="buttons">
-                    <button onclick="checkLogin('join')" class="button join-button">
-                        <img src="image/heart.png" alt="checkmark icon" class="button-icon"> Join Organization
-                    </button>
-                    <button onclick="checkLogin('contact')" class="button contact-button">
-                        <img src="image/message.png" alt="email icon" class="button-icon"> Contact
-                    </button>
-                </div>
+                    <!-- Logo -->
+                    <div id="orgLogo" class="org-logo-wrap"></div>
 
-                <div id="infoModal" class="modal-overlay hidden">
-                <div class="modal-container">
-                    <button onclick="closeModal()" class="absolute-close">&times;</button>
+                    <!-- Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <h2 id="orgName" class="text-2xl font-bold text-white">Loading...</h2>
+                            <span id="orgCategoryBadge" class="badge">Category</span>
+                        </div>
+                        <p id="orgTagline" class="text-white/60 text-sm mb-3 italic">"Loading description..."</p>
 
-                    <div id="modalContent">
+                        <div class="flex flex-wrap gap-4 mb-4">
+                            <div class="info-row">
+                                <i class="fa-solid fa-users"></i>
+                                <span><span id="orgMemberCount">0</span> members</span>
+                            </div>
+                            <div class="info-row">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span>NU Manila, 550 M.F. Jhocson St., Sampaloc, Manila</span>
+                            </div>
                         </div>
 
-                    <div id="loginGate" class="hidden">
-                        <div class="border-t pt-4 mt-4">
-                            <p class="text-xs text-slate-500 mb-3">Please sign in to access these details</p>
-                            <a href="sign_in.html" class="modal-btn btn-primary">Sign In to NUnite</a>
-                            <p class="text-[10px] mt-2 text-slate-400">New here? <a href="sign_up.html" class="text-indigo-600 font-bold">Create Account</a></p>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="checkLogin('join')" class="btn-join">
+                                <i class="fa-solid fa-heart text-xs"></i>
+                                Join Organization
+                            </button>
+                            <button onclick="checkLogin('contact')" class="btn-contact">
+                                <i class="fa-solid fa-envelope text-xs"></i>
+                                Contact
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- MAIN CONTENT -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+
+                <!-- LEFT: 2/3 -->
+                <div class="md:col-span-2 flex flex-col gap-6">
+
+                    <!-- About -->
+                    <div class="glass-card p-6">
+                        <p class="section-label">About</p>
+                        <h3 class="text-lg font-bold text-white mb-3">
+                            About <span id="orgNameAbout">Organization</span>
+                        </h3>
+                        <p id="orgDescription" class="text-white/70 text-sm leading-relaxed">Detailed description goes here.</p>
+
+                        <hr class="divider">
+
+                        <h4 class="text-sm font-bold text-white mb-2">Join Requirements</h4>
+                        <p class="text-white/60 text-sm leading-relaxed">
+                            Must be a bona fide student of National University and passionate about the community.
+                        </p>
+
+                        <hr class="divider">
+
+                        <h4 class="text-sm font-bold text-white mb-2">Member Benefits</h4>
+                        <p class="text-white/60 text-sm leading-relaxed">
+                            Leadership opportunities, skill development workshops, and networking with fellow students.
+                        </p>
+                    </div>
+
+                    <!-- Upcoming Events -->
+                    <div class="glass-card p-6">
+                        <p class="section-label">Events</p>
+                        <h3 class="text-lg font-bold text-white mb-2">Upcoming Events</h3>
+                        <p class="text-white/60 text-sm">
+                            Stay tuned! Events are posted regularly on our official social media pages.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- RIGHT: 1/3 -->
+                <div class="flex flex-col gap-6">
+
+                    <!-- Contact -->
+                    <div class="glass-card p-6">
+                        <p class="section-label">Contact</p>
+                        <h3 class="text-base font-bold text-white mb-3">Contact Information</h3>
+                        <div class="info-row">
+                            <i class="fa-solid fa-envelope"></i>
+                            <a id="orgEmail" href="#" class="text-indigo-400 hover:text-indigo-300 text-sm transition-colors">
+                                contact@national-u.edu.ph
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Leadership -->
+                    <div class="glass-card p-6">
+                        <p class="section-label">Leadership</p>
+                        <h3 class="text-base font-bold text-white mb-2">Executive Board</h3>
+                        <p class="text-white/60 text-sm">
+                            Executive Board and Committee Chairs for Academic Year 2025–2026.
+                        </p>
+                    </div>
+
+                    <!-- Meetings -->
+                    <div class="glass-card p-6">
+                        <p class="section-label">Meetings</p>
+                        <h3 class="text-base font-bold text-white mb-2">Meeting Information</h3>
+                        <p class="text-white/60 text-sm">
+                            Weekly meetings held at the designated organization room or via MS Teams.
+                        </p>
+                    </div>
+
                 </div>
             </div>
-        </section>
+        </div>
+    </div>
 
-        <div class="main-content">
-            <div class="left-panel">
-                <section class="section-card">
-                    <h3>About <span id="orgNameAbout">Organization</span></h3>
-                    <p id="orgDescription">Detailed description goes here.</p>
-                    <br><br>
-                    <h4>Join Requirements</h4>
-                    <p>Must be a bona fide student of National University and passionate about the community.</p>
-                    <br>
-                    <h4>Member Benefits</h4>
-                    <p>Leadership opportunities, skill development workshops, and networking with fellow students.</p>
-                </section>
-                
-                <section class="section-card">
-                    <h3>Upcoming Events</h3>
-                    <p>Stay tuned! Events are posted regularly on our official social media pages.</p>
-                </section>
-            </div>
-
-            <div class="right-panel">
-                <section class="section-card">
-                    <h3>Contact Information</h3>
-                    <ul class="contact-info-list" style="list-style: none; padding: 0;">
-                        <li style="display: flex; align-items: center; gap: 10px;">
-                            <img src="/image/message.png" alt="email icon" class="button-icon">
-                            <a href="#" id="orgEmail">contact@national-u.edu.ph</a>
-                        </li>
-                    </ul>
-                </section>
-
-                <section class="section-card">
-                    <h3>Leadership</h3>
-                    <p>Executive Board and Committee Chairs for Academic Year 2025-2026.</p>
-                </section>
-
-                <section class="section-card">
-                    <h3>Meeting Information</h3>
-                    <p>Weekly meetings held at the designated organization room or via MS Teams.</p>
-                </section>
+    <!-- MODAL -->
+    <div id="infoModal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <button onclick="closeModal()" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+            <div id="modalContent"></div>
+            <div id="loginGate" class="hidden">
+                <hr class="divider">
+                <p class="text-white/50 text-xs mb-3">Please sign in to access these details</p>
+                <a href="sign_in.html"
+                   class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg text-sm transition-colors mb-2">
+                    Sign In to NUnite
+                </a>
+                <p class="text-center text-xs text-white/40">
+                    New here? <a href="sign_up.html" class="text-indigo-400 font-bold hover:underline">Create Account</a>
+                </p>
             </div>
         </div>
     </div>

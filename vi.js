@@ -88,10 +88,13 @@ window.checkLogin = async function(action) {
 
     if (!authState.user) {
         loginGate.classList.remove('hidden');
-        content.style.filter = 'blur(4px)';
+        content.style.filter = 'none';
         content.innerHTML = `
-            <h3 class="info-title">Locked Content</h3>
-            <p>To see the joining process and contact details for this organization, please sign in.</p>`;
+            <div class="locked-card">
+                <div class="locked-icon"><i class="fa-solid fa-lock"></i></div>
+                <h3 class="info-title">Sign In Required</h3>
+                <p class="info-copy">Sign in to view contact details and submit your organization application.</p>
+            </div>`;
         return;
     }
 

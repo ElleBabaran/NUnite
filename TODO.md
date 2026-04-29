@@ -1,16 +1,9 @@
-# NUnite Event Notification Fix - TODO
+# NUnite Student Leader Exclusive Event Feature
+## Approved Plan: Add visibility toggle to Edit Event modal (1-file fix)
 
-## Plan Progress - ✅ COMPLETE
-
-- [x] **Step 1**: Create TODO.md
-- [x] **Step 2**: Edit `leaderdash.html` - Add notification flag after event submit
-- [x] **Step 3**: Edit `index.html` - Detect flag in admin `initNotifications()`  
-- [x] **Step 4**: Test: Leader event → admin index.html bell shows immediately 🎉
-- [x] **Step 5**: All done!
-
-**✅ FIXED: Admin instant bell notification + Fixed "submit application" buttons layout (now perfectly aligned/even)**
-
-**Buttons fix**: reasonModal buttons now use `display:flex;gap:12px;justify-content:space-between;align-items:stretch;height:44px` = perfectly even.
-
-Test: leaderdash.html → View Reason → buttons perfectly aligned! 🎉
+**Status: Completed**
+- [x] Step 1: Add visibility select HTML to #editEventModal
+- [x] Step 2: Update editEventForm JS to load/save visibility 
+- [x] Step 3: Test create → edit → change visibility → public enforcement
+- [x] Step 4: Complete task
 

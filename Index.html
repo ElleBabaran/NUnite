@@ -899,7 +899,7 @@
             const eventOrgId = eventOrg ? String(eventOrg.id) : null;
             const myOrgJoin  = eventOrgId ? orgJoins.find(j => String(j.orgId) === eventOrgId && j.email === userEmail) : null;
             const isOrgMember = myOrgJoin && myOrgJoin.status === 'approved';
-            if (eventOrgId && !isOrgMember) {
+            if (thisEvent.visibility === 'exclusive' && eventOrgId && !isOrgMember) {
                 alert('You must be an approved member of ' + (thisEvent.org || 'the organization') + ' to attend this event.');
                 return;
             }

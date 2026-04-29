@@ -557,9 +557,13 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './a
                 ? `<div style="padding:18px 20px;text-align:center;color:#aaa;font-size:13px;">No attendee requests for this event.</div>`
                 : evAttendees.map(j => {
                     const status    = j.status || 'pending';
-                    const initial   = (j.user_name || j.user_email || '?')[0].toUpperCase();
-                    const isMember  = orgJoins.some(oj => oj.email === j.user_email && oj.status === 'approved');
-                    const isPending = orgJoins.some(oj => oj.email === j.user_email && (oj.status || 'pending') === 'pending');
+                    const attendeeEmail = (j.user_email || j.email || '').toLowerCase();
+                    const initial   = (j.user_name || j.name || attendeeEmail || '?')[0].toUpperCase();
+                    const matchingJoins = orgJoins.filter(oj =>
+                        ((oj.email || oj.user_email || '').toLowerCase()) === attendeeEmail
+                    );
+                    const isMember  = matchingJoins.some(oj => (oj.status || '').toLowerCase() === 'approved');
+                    const isPending = !isMember && matchingJoins.some(oj => (oj.status || 'pending').toLowerCase() === 'pending');
 
                     const memberPill = isMember
                         ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;">✅ Org Member</span>`
@@ -573,7 +577,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './a
                             actionHtml = `
                                 <button class="action-btn approve-btn do-approve-attendee" data-id="${j.id}" disabled style="opacity:.4;cursor:not-allowed;">Approve</button>
                                 <button class="action-btn reject-btn do-reject-attendee"   data-id="${j.id}" disabled style="opacity:.4;cursor:not-allowed;">Decline</button>
-                                <button class="action-btn reason-btn do-invite-member" data-email="${j.user_email}" data-name="${(j.user_name||'').replace(/"/g,'')}" style="font-size:11px;white-space:nowrap;">+ Add to Org First</button>`;
+                                <button class="action-btn reason-btn do-invite-member" data-email="${j.user_email || j.email || ''}" data-name="${(j.user_name || j.name || '').replace(/"/g,'')}" style="font-size:11px;white-space:nowrap;">+ Add to Org First</button>`;
                         } else {
                             actionHtml = `
                                 <button class="action-btn approve-btn do-approve-attendee" data-id="${j.id}">Approve</button>

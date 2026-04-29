@@ -11,7 +11,7 @@
  */
 
 import { supabase, supabaseAdmin } from './supabase.js';
-import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './auth.js';
+import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
 
 (async function () {
 
@@ -682,11 +682,6 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './a
         body.style.display = open ? 'none' : 'block';
         if (chev) chev.textContent = open ? '▶' : '▼';
     };
-
-    // ── SIGN OUT ──
-    document.getElementById('leaderSignOutBtn').addEventListener('click', async () => {
-        await signOutToLogin();
-    });
 
     // ── INIT ──
     await renderMembers();

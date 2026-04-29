@@ -1,5 +1,5 @@
 import { supabase, supabaseAdmin } from './supabase.js';
-import { ADMIN_EMAIL, getSessionUser, signOutToLogin } from './auth.js';
+import { ADMIN_EMAIL, getSessionUser } from './auth.js';
 
 // =============================================
 // NUnite Admin Dashboard - admin.js  (Supabase)
@@ -609,11 +609,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             if (target === 'events') renderEvents();
         });
-    });
-
-    // ---- SIGN OUT ----
-    document.getElementById('adminSignOutBtn').addEventListener('click', async () => {
-        await signOutToLogin();
     });
 
     // ---- INIT ----

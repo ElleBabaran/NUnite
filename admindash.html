@@ -54,8 +54,30 @@
             background: none; -webkit-background-clip: unset; -webkit-text-fill-color: #fff;
         }
         /* Back link style matching leaderdash */
-        .back-link { color: rgba(255,255,255,0.8) !important; }
-        .back-link:hover { color: var(--brand-gold) !important; }
+        .dashboard-back-row {
+            display: flex;
+            align-items: center;
+            padding: 16px 28px 0;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.86) !important;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(255,255,255,0.16);
+            transition: background .15s, color .15s, transform .15s;
+        }
+        .back-link:hover {
+            color: var(--brand-gold) !important;
+            background: rgba(255,255,255,0.16);
+            transform: translateX(-2px);
+        }
         .header-tabs {
             display: flex !important;
             gap: 0 !important;
@@ -166,15 +188,14 @@
         <header class="dashboard-top">
             <div class="header-left">
 
-                <!-- Back link row -->
-                <div style="padding:14px 28px 0;">
-                    <a href="index.html" class="back-link" style="display:flex;align-items:center;text-decoration:none;color:rgba(255,255,255,0.8);font-weight:600;font-size:13px;">
-                        <img src="/image/back.png" alt="back icon" style="height:16px;width:auto;margin-right:6px;">
-                        <span>Back</span>
+                <div class="dashboard-back-row">
+                    <a href="index.html" class="back-link">
+                        <span aria-hidden="true">←</span>
+                        <span>Back to Home</span>
                     </a>
                 </div>
 
-                <!-- Title row: brand/title LEFT — bell+signout FAR RIGHT -->
+                <!-- Title row -->
                 <div class="admin-top-row">
                     <div>
                         <div class="nunite-brand">
@@ -183,9 +204,6 @@
                         </div>
                         <h2>Admin Dashboard</h2>
                         <p>Manage student organizations</p>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
-                        <button id="adminSignOutBtn" class="admin-logout-btn">Sign Out</button>
                     </div>
                 </div>
 
@@ -275,7 +293,6 @@
                         <option value="COA">COA</option>
                         <option value="CBA">CBA</option>
                         <option value="CEAS">CEAS</option>
-                        <option value="None">None</option>
                     </select>
                 </div>
             </div>

@@ -16,9 +16,16 @@ let filters = {
 async function loadData() {
     authState = await getCurrentRole();
 
+    const nowIso = new Date().toISOString();
     const [{ data: orgRows }, { data: eventRows }, { data: joinRows }, { data: eventJoinRows }] = await Promise.all([
         supabase.from('organizations').select('*').order('name'),
-        supabase.from('events').select('*').eq('approved', true).eq('rejected', false).order('date', { ascending: true }),
+        supabase
+            .from('events')
+            .select('*')
+            .eq('approved', true)
+            .eq('rejected', false)
+            .or(`date.is.null,date.gte.${nowIso}`)
+            .order('date', { ascending: true }),
         supabase.from('joins').select('*'),
         supabase.from('event_joins').select('*'),
     ]);
@@ -155,7 +162,16 @@ function renderJoinStatus(ev) {
         </div>`;
     }
     if (authState.role === 'admin') return '';
-    if (authState.leader && String(authState.leader.org_id) === String(ev.org_id)) return '';
+    if (authState.leader) {
+        const leaderOrgId = String(authState.leader.org_id || '');
+        const eventOrgId = String(ev.org_id || '');
+        const leaderOrgName = (authState.leader.org_name || '').trim().toLowerCase();
+        const eventOrgName = (ev.org || '').trim().toLowerCase();
+        if ((leaderOrgId && eventOrgId && leaderOrgId === eventOrgId) ||
+            (leaderOrgName && eventOrgName && leaderOrgName === eventOrgName)) {
+            return '';
+        }
+    }
 
     const existing = getEventJoinForUser(ev);
     if (existing) {
@@ -290,7 +306,7 @@ async function renderNotifications() {
         const orgId = authState.leader.org_id;
         const [{ data: memberRows }, { data: eventRows }] = await Promise.all([
             supabase.from('joins').select('*').eq('org_id', orgId),
-            supabase.from('events').select('id,title').eq('org_id', orgId),
+            supabase.from('events').select('id,title,approved,rejected,created_by').eq('org_id', orgId),
         ]);
         const eventIds = (eventRows || []).map(ev => ev.id);
         let attendeeRows = [];
@@ -301,7 +317,16 @@ async function renderNotifications() {
 
         const pendingMembers = (memberRows || []).filter(m => (m.status || 'pending') === 'pending');
         const pendingAttendees = attendeeRows.filter(j => (j.status || 'pending') === 'pending');
+        const reviewedLeaderEvents = (eventRows || []).filter(ev =>
+            ev.created_by === 'leader' &&
+            (ev.approved === true || ev.rejected === true)
+        );
         const visible = [
+            {
+                title: 'Student leader assigned',
+                text: `You are now the student leader of ${authState.leader.org_name || 'your organization'}.`,
+                action: 'leader',
+            },
             ...pendingMembers.map(m => ({
                 title: 'Membership request',
                 text: `${m.name || m.email || 'A student'} wants to join ${authState.leader.org_name || 'your organization'}.`,
@@ -315,6 +340,11 @@ async function renderNotifications() {
                     action: 'leader',
                 };
             }),
+            ...reviewedLeaderEvents.map(ev => ({
+                title: 'Event review update',
+                text: `${ev.title || 'Your event'} was ${ev.approved ? 'approved' : 'not approved'}.`,
+                action: 'leader',
+            })),
         ];
 
         count = visible.length;

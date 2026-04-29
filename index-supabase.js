@@ -277,7 +277,7 @@ async function renderNotifications() {
     const dropdown = document.getElementById('notifDropdown');
     if (!dropdown) return;
 
-    if (!authState.user || authState.role === 'admin' || authState.role === 'leader') {
+    if (!authState.user || authState.role === 'admin') {
         setNotifBadge(0);
         dropdown.innerHTML = '';
         return;
@@ -285,6 +285,52 @@ async function renderNotifications() {
 
     let count = 0;
     let html = '<div class="notif-header">Notifications</div>';
+
+    if (authState.role === 'leader' && authState.leader) {
+        const orgId = authState.leader.org_id;
+        const [{ data: memberRows }, { data: eventRows }] = await Promise.all([
+            supabase.from('joins').select('*').eq('org_id', orgId),
+            supabase.from('events').select('id,title').eq('org_id', orgId),
+        ]);
+        const eventIds = (eventRows || []).map(ev => ev.id);
+        let attendeeRows = [];
+        if (eventIds.length > 0) {
+            const { data } = await supabase.from('event_joins').select('*').in('event_id', eventIds);
+            attendeeRows = data || [];
+        }
+
+        const pendingMembers = (memberRows || []).filter(m => (m.status || 'pending') === 'pending');
+        const pendingAttendees = attendeeRows.filter(j => (j.status || 'pending') === 'pending');
+        const visible = [
+            ...pendingMembers.map(m => ({
+                title: 'Membership request',
+                text: `${m.name || m.email || 'A student'} wants to join ${authState.leader.org_name || 'your organization'}.`,
+                action: 'leader',
+            })),
+            ...pendingAttendees.map(j => {
+                const ev = (eventRows || []).find(e => String(e.id) === String(j.event_id));
+                return {
+                    title: 'Event attendee request',
+                    text: `${j.user_name || j.user_email || 'A student'} requested to join ${ev?.title || 'an event'}.`,
+                    action: 'leader',
+                };
+            }),
+        ];
+
+        count = visible.length;
+        html += visible.length === 0
+            ? '<div class="notif-empty">No leader notifications yet.</div>'
+            : visible.slice(0, 8).map(n => notifItem(n.title, n.text, n.action)).join('');
+
+        dropdown.innerHTML = html;
+        setNotifBadge(count);
+        dropdown.querySelectorAll('[data-action="leader"]').forEach(item => {
+            item.addEventListener('click', () => {
+                window.location.href = 'leaderdash.html';
+            });
+        });
+        return;
+    }
 
     const email = authState.user.email;
     const myJoins = joins.filter(j => j.email === email);
@@ -316,7 +362,6 @@ async function renderNotifications() {
     setNotifBadge(count);
     dropdown.querySelectorAll('[data-action]').forEach(item => {
         item.addEventListener('click', () => {
-            const action = item.dataset.action;
             document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth' });
         });
     });

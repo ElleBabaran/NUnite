@@ -135,7 +135,7 @@ function getEventJoinForUser(ev) {
 
 function eventVisibilityBadge(ev) {
     if (ev.visibility === 'exclusive') {
-        return `<span style="display:inline-block;width:max-content;margin-top:4px;padding:3px 10px;border-radius:999px;background:rgba(245,158,11,0.16);color:#fbbf24;font-size:10px;font-weight:800;">Exclusive to ${ev.org || 'organization members'}</span>`;
+        return `<span style="display:inline-block;width:max-content;margin-top:4px;padding:3px 10px;border-radius:999px;background:rgba(245,158,11,0.16);color:#fbbf24;font-size:10px;font-weight:800;">Exclusive to Org members</span>`;
     }
     return `<span style="display:inline-block;width:max-content;margin-top:4px;padding:3px 10px;border-radius:999px;background:rgba(34,197,94,0.16);color:#4ade80;font-size:10px;font-weight:800;">Open to everyone</span>`;
 }
@@ -146,7 +146,7 @@ function renderJoinStatus(ev) {
         if (ev.visibility === 'exclusive') {
             return `<div style="margin-top:8px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
                 <span style="display:inline-block;padding:3px 10px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:10px;font-weight:700;">🔒 Members Only - Sign in and join the org first</span>
-                <a href="sign_in.html" style="display:inline-flex;align-items:center;justify-content:center;width:96px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">Sign In</a>
+                <a href="sign_in.html" style="display:inline-flex;align-items:center;justify-content:center;width:96px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">Join</a>
             </div>`;
         }
         return `<div style="margin-top:8px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;">

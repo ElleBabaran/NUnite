@@ -584,8 +584,14 @@
             // ── ADMIN notifications ──
             if (isAdmin) {
                 const events = JSON.parse(localStorage.getItem('nunite_events') || '[]');
-                const pending = events.filter(ev => !ev.approved && ev.approved !== false || ev.approved === undefined).filter(ev => !ev.approved);
-                const totalBadge = pending.length;
+                const newPendingFlag = localStorage.getItem('nunite_admin_new_pending_event');
+                let pendingCount = 0;
+                if (newPendingFlag) {
+                    pendingCount += 1;
+                    localStorage.removeItem('nunite_admin_new_pending_event');
+                }
+                const pending = events.filter(ev => !ev.approved && ev.rejected !== true);
+                const totalBadge = pending.length + pendingCount;
 
                 btn.style.display = 'block';
                 badge.style.display = totalBadge > 0 ? 'flex' : 'none';
@@ -598,7 +604,7 @@
                         const month = d ? d.toLocaleString('default',{month:'short'}).toUpperCase() : '—';
                         const day   = d ? d.getDate() : '—';
                         return `
-                        <div class="notif-item" style="cursor:pointer;" onclick="window.location.href='admindash.html'">
+                        <div class="notif-item" style="cursor:pointer;" onclick="localStorage.setItem('nunite_redirect_target', 'events|needs_approval');window.location.href='admindash.html'">
                             <div class="notif-date">
                                 <span class="nd-month">${month}</span>
                                 <span class="nd-day">${day}</span>

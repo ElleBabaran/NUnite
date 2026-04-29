@@ -29,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const allJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
         const approvedCount = allJoins.filter(j => String(j.orgId) === String(orgId) && j.status === 'approved').length;
         document.getElementById('orgMemberCount').innerText = approvedCount;
-        document.getElementById('orgEmail').innerText = org.email;
-        document.getElementById('orgEmail').href = `mailto:${org.email}`;
+        document.getElementById('orgEmail').innerText = org.email || 'contact@national-u.edu.ph';
+        document.getElementById('orgEmail').href = `mailto:${org.email || 'contact@national-u.edu.ph'}`;
 
         // Support both admin-uploaded logo images and emoji logos
         const logoEl = document.getElementById('orgLogo');
@@ -98,12 +98,12 @@ function checkLogin(action) {
             content.innerHTML = `
                 <h3 class="info-title">Contact Information</h3>
                 <div style="margin-top:20px;">
-                    <a href="mailto:${org.email}" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:#1e1b4b; margin-bottom:15px; padding:10px; background:#f8fafc; border-radius:10px;">
-                        <i class="fa-solid fa-envelope" style="color:#4f46e5;"></i> <b>Email:</b> ${org.email}
-                    </a>
-                    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#f8fafc; border-radius:10px;">
-                        <i class="fa-brands fa-facebook" style="color:#1877f2;"></i> <b>FB:</b> /${org.name.replace(/\s/g, '')}
+                    <div style="display:flex; align-items:center; gap:10px; padding:10px; background:#f8fafc; border-radius:10px; margin-bottom:15px;">
+                        <i class="fa-solid fa-user" style="color:#6366f1;"></i> <b>Contact Person:</b> ${org.contactPerson || 'TBD'}
                     </div>
+                    <a href="mailto:${org.email}" style="display:flex; align-items:center; gap:10px; text-decoration:none; color:#1e1b4b; padding:10px; background:#f8fafc; border-radius:10px;">
+                        <i class="fa-solid fa-envelope" style="color:#4f46e5;"></i> <b>Email:</b> ${org.email || 'contact@national-u.edu.ph'}
+                    </a>
                 </div>
             `;
         }

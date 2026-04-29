@@ -236,7 +236,7 @@
         }
         .member-name { font-weight: 700; font-size: 14px; color: #000 !important; margin: 0 0 2px; }
         .member-meta { font-size: 12px; color: #888; margin: 0; }
-        .member-card-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.member-card-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; min-width: 200px; }
 
         /* Status badges */
         .status-badge {
@@ -623,9 +623,9 @@ r
                 <span id="reasonCurrentStatus"></span>
             </div>
 
-            <div class="modal-buttons" style="gap:10px;">
-                <button type="button" class="cancel-btn" id="reasonRejectBtn" style="background:#ef4444;color:#fff;border-color:#ef4444;flex:1;">❌ Reject</button>
-                <button type="button" class="add-btn"    id="reasonApproveBtn" style="flex:1;">✅ Approve</button>
+<div class="modal-buttons" style="display:flex;gap:12px;justify-content:space-between;align-items:stretch;">
+                <button type="button" class="cancel-btn" id="reasonRejectBtn" style="background:#ef4444;color:#fff;border-color:#ef4444;flex:1;height:44px;font-weight:700;border-radius:10px;">❌ Reject</button>
+                <button type="button" class="add-btn"    id="reasonApproveBtn" style="flex:1;height:44px;font-weight:700;border-radius:10px;">✅ Approve</button>
             </div>
         </div>
     </div>
@@ -977,9 +977,10 @@ r
 
             const evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
             evs.push(newEvent);
-            localStorage.setItem('nunite_events', JSON.stringify(evs));
+localStorage.setItem('nunite_events', JSON.stringify(evs));
+localStorage.setItem('nunite_admin_new_pending_event', Date.now().toString());
 
-            leaderEventModal.style.display = 'none';
+leaderEventModal.style.display = 'none';
             renderEvents();
             alert('Event submitted! It will appear publicly once the admin approves it.');
         });
@@ -1047,7 +1048,7 @@ r
             const allEvents     = JSON.parse(localStorage.getItem('nunite_events') || '[]');
             const allOrgJoins   = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
 
-            const myEvents   = allEvents.filter(ev => ev.approved && ev.org === myOrgName);
+            const myEvents   = allEvents.filter(ev => ev.org === myOrgName);
             const myEventIds = myEvents.map(ev => String(ev.id));
             const myAttendees = allEventJoins.filter(j => myEventIds.includes(String(j.eventId)));
 
@@ -1069,8 +1070,8 @@ r
                 body.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">📅</div>
-                        <p>No approved events yet</p>
-                        <span>Submit and get an event approved first.</span>
+                        <p>No events yet</p>
+                        <span>Submit events and students can join them.</span>
                     </div>`;
                 return;
             }
@@ -1088,8 +1089,10 @@ r
                 const emptyPill    = evAttendees.length === 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#f1f5f9;color:#94a3b8;font-weight:700;">No requests</span>` : '';
 
                 const rows = evAttendees.length === 0
-                    ? `<div style="padding:18px 20px;text-align:center;color:#aaa;font-size:13px;">No attendee requests for this event yet.</div>`
+                    ? `<div style="padding:18px 20px;text-align:center;color:#aaa;font-size:13px;">No attendee requests for this event (ID: ${ev.id}).</div>`
                     : evAttendees.map(j => {
+                        console.log('DEBUG Attendee:', j.eventId+' ('+typeof j.eventId+'), Event ID:', ev.id+' ('+typeof ev.id+')');
+
                         const status  = j.status || 'pending';
                         const initial = (j.name || j.email || '?')[0].toUpperCase();
                         const isMember = allOrgJoins.some(oj =>

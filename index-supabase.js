@@ -277,7 +277,7 @@ async function renderNotifications() {
     const dropdown = document.getElementById('notifDropdown');
     if (!dropdown) return;
 
-    if (!authState.user) {
+    if (!authState.user || authState.role === 'admin' || authState.role === 'leader') {
         setNotifBadge(0);
         dropdown.innerHTML = '';
         return;
@@ -286,78 +286,47 @@ async function renderNotifications() {
     let count = 0;
     let html = '<div class="notif-header">Notifications</div>';
 
-    if (authState.role === 'admin') {
-        const { data } = await supabase.from('events').select('*').eq('approved', false).eq('rejected', false);
-        const pendingEvents = data || [];
-        count = pendingEvents.length;
-        html += pendingEvents.length === 0
-            ? '<div class="notif-empty">No pending admin approvals.</div>'
-            : pendingEvents.slice(0, 8).map(ev =>
-                notifItem('Event needs approval', `${ev.title || 'Untitled event'} from ${ev.org || 'an organization'}`, 'admin')
-            ).join('');
-    } else if (authState.role === 'leader' && authState.leader) {
-        const orgId = authState.leader.org_id;
-        const [{ data: memberRows }, { data: eventRows }] = await Promise.all([
-            supabase.from('joins').select('*').eq('org_id', orgId),
-            supabase.from('events').select('id,title').eq('org_id', orgId),
-        ]);
-        const pendingMembers = (memberRows || []).filter(m => (m.status || 'pending') === 'pending');
-        const eventIds = (eventRows || []).map(ev => ev.id);
-        let pendingAttendees = [];
-        if (eventIds.length > 0) {
-            const { data } = await supabase.from('event_joins').select('*').in('event_id', eventIds);
-            pendingAttendees = (data || []).filter(j => (j.status || 'pending') === 'pending');
-        }
-        count = pendingMembers.length + pendingAttendees.length;
-        html += count === 0
-            ? '<div class="notif-empty">No pending leader requests.</div>'
-            : [
-                ...pendingMembers.slice(0, 4).map(m => notifItem('Membership request', `${m.name || m.email || 'A student'} wants to join your organization.`, 'leader-members')),
-                ...pendingAttendees.slice(0, 4).map(j => notifItem('Event attendee request', `${j.user_name || j.user_email || 'A student'} requested to join an event.`, 'leader-attendees')),
-            ].join('');
-    } else {
-        const email = authState.user.email;
-        const myJoins = joins.filter(j => j.email === email);
-        const myEventJoins = eventJoins.filter(j => (j.user_email || j.email) === email);
-        const approvedOrgIds = myJoins
-            .filter(j => j.status === 'approved')
-            .map(j => String(j.org_id));
-        const now = new Date();
-        const memberOrgEvents = events.filter(ev =>
-            approvedOrgIds.includes(String(ev.org_id)) &&
-            (!ev.date || new Date(ev.date) >= now)
-        );
-        const visible = [
-            ...memberOrgEvents.map(ev => ({
-                title: 'New organization event',
-                text: `${ev.org || 'Your organization'} posted ${ev.title || 'an event'}.`,
-            })),
-            ...myJoins.map(j => ({
-                title: 'Organization application',
-                text: `${j.org_name || 'Organization'}: ${(j.status || 'pending').toUpperCase()}`,
-            })),
-            ...myEventJoins.map(j => {
-                const ev = events.find(e => String(e.id) === String(j.event_id));
-                return {
-                    title: 'Event request',
-                    text: `${ev?.title || 'Event'}: ${(j.status || 'pending').toUpperCase()}`,
-                };
-            }),
-        ];
-        count = visible.length;
-        html += visible.length === 0
-            ? '<div class="notif-empty">No student notifications yet.</div>'
-            : visible.slice(0, 8).map(n => notifItem(n.title, n.text, 'student')).join('');
-    }
+    const email = authState.user.email;
+    const myJoins = joins.filter(j => j.email === email);
+    const myEventJoins = eventJoins.filter(j => (j.user_email || j.email) === email);
+    const approvedOrgIds = myJoins
+        .filter(j => j.status === 'approved')
+        .map(j => String(j.org_id));
+    const now = new Date();
+    const memberOrgEvents = events.filter(ev =>
+        approvedOrgIds.includes(String(ev.org_id)) &&
+        (!ev.date || new Date(ev.date) >= now)
+    );
+    const completedOrgApplications = myJoins.filter(j => ['approved', 'rejected'].includes(j.status));
+    const completedEventRequests = myEventJoins.filter(j => ['approved', 'rejected'].includes(j.status));
+    const visible = [
+        ...memberOrgEvents.map(ev => ({
+            title: 'New organization event',
+            text: `${ev.org || 'Your organization'} posted ${ev.title || 'an event'}.`,
+        })),
+        ...completedOrgApplications.map(j => ({
+            title: 'Organization application',
+            text: `${j.org_name || 'Organization'}: ${j.status.toUpperCase()}`,
+        })),
+        ...completedEventRequests.map(j => {
+            const ev = events.find(e => String(e.id) === String(j.event_id));
+            return {
+                title: 'Event request',
+                text: `${ev?.title || 'Event'}: ${j.status.toUpperCase()}`,
+            };
+        }),
+    ];
+    count = visible.length;
+    html += visible.length === 0
+        ? '<div class="notif-empty">No student notifications yet.</div>'
+        : visible.slice(0, 8).map(n => notifItem(n.title, n.text, 'student')).join('');
 
     dropdown.innerHTML = html;
     setNotifBadge(count);
     dropdown.querySelectorAll('[data-action]').forEach(item => {
         item.addEventListener('click', () => {
             const action = item.dataset.action;
-            if (action === 'admin') window.location.href = 'admindash.html';
-            else if (action === 'leader-members' || action === 'leader-attendees') window.location.href = 'leaderdash.html';
-            else document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth' });
         });
     });
 }

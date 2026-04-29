@@ -49,6 +49,34 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './a
     const myOrgId   = myLeader.org_id;
     const myOrgName = myLeader.org_name;
 
+    function isBeforeToday(dateValue) {
+        if (!dateValue) return false;
+        const eventDate = new Date(dateValue);
+        if (Number.isNaN(eventDate.getTime())) return false;
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        return eventDate < todayStart;
+    }
+
+    async function rejectExpiredPendingEvents(events = null) {
+        const rows = events || await getMyEvents();
+        const expired = rows.filter(ev => !ev.approved && ev.rejected !== true && isBeforeToday(ev.date));
+        if (expired.length === 0) return rows;
+
+        await Promise.all(expired.map(ev =>
+            supabaseAdmin
+                .from('events')
+                .update({ approved: false, rejected: true })
+                .eq('id', ev.id)
+        ));
+
+        return rows.map(ev =>
+            expired.some(exp => exp.id === ev.id)
+                ? { ...ev, approved: false, rejected: true }
+                : ev
+        );
+    }
+
     // ── ORG EXISTENCE CHECK via Supabase ──
     const { data: orgCheck } = await supabase
         .from('organizations')
@@ -259,7 +287,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './a
     }
 
     async function renderEvents() {
-        const orgEvents = await getMyEvents();
+        const orgEvents = await rejectExpiredPendingEvents(await getMyEvents());
         const body      = document.getElementById('leaderEventBody');
 
         if (orgEvents.length === 0) {
@@ -276,7 +304,9 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './a
             const d     = ev.date ? new Date(ev.date) : null;
             const month = d ? d.toLocaleString('default', { month: 'short' }) : '—';
             const day   = d ? d.getDate() : '—';
-            const badge = ev.approved
+            const badge = ev.rejected
+                ? '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#fee2e2;color:#991b1b;font-weight:700;">❌ Not Approved</span>'
+                : ev.approved
                 ? '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;">✅ Approved</span>'
                 : '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Pending</span>';
             return `
@@ -311,7 +341,9 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser, signOutToLogin } from './a
                 document.getElementById('vevDate').textContent        = ev.date
                     ? new Date(ev.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                     : '(No date.)';
-                document.getElementById('vevStatus').innerHTML = ev.approved
+                document.getElementById('vevStatus').innerHTML = ev.rejected
+                    ? '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#fee2e2;color:#991b1b;font-weight:700;">❌ Not Approved</span>'
+                    : ev.approved
                     ? '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;">✅ Approved</span>'
                     : '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Pending Admin Approval</span>';
                 document.getElementById('viewEventModal').style.display = 'block';

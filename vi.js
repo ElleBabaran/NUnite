@@ -5,6 +5,30 @@ let organizations = [];
 let currentOrg = null;
 let authState = { user: null, role: 'guest', leader: null };
 
+async function updateJoinButtonState(orgId) {
+    const joinBtn = document.querySelector('.btn-join');
+    if (!joinBtn || !authState.user) return;
+
+    const { data: existingJoin } = await supabase
+        .from('joins')
+        .select('status')
+        .eq('org_id', orgId)
+        .eq('email', authState.user.email)
+        .maybeSingle();
+
+    if (existingJoin?.status === 'approved') {
+        joinBtn.innerHTML = '<i class="fa-solid fa-check text-xs"></i>Already Joined';
+        joinBtn.disabled = true;
+        joinBtn.style.opacity = '0.6';
+        joinBtn.style.cursor = 'not-allowed';
+    } else if ((existingJoin?.status || '') === 'pending') {
+        joinBtn.innerHTML = '<i class="fa-solid fa-clock text-xs"></i>Application Pending';
+        joinBtn.disabled = true;
+        joinBtn.style.opacity = '0.6';
+        joinBtn.style.cursor = 'not-allowed';
+    }
+}
+
 async function loadOrganizations() {
     const { data, error } = await supabase.from('organizations').select('*').order('name');
     if (error) {
@@ -49,6 +73,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         logoEl.innerText = org.logo_emoji || '🏫';
     }
+
+    await updateJoinButtonState(orgId);
 });
 
 window.checkLogin = async function(action) {
@@ -132,13 +158,19 @@ window.submitApp = async function() {
 
     const { data: existing } = await supabase
         .from('joins')
-        .select('id')
+        .select('id, status')
         .eq('org_id', orgId)
         .eq('email', authState.user.email)
         .maybeSingle();
 
     if (existing) {
-        alert('You have already applied for this organization.');
+        if (existing.status === 'approved') {
+            alert('You are already a member of this organization.');
+        } else if ((existing.status || 'pending') === 'pending') {
+            alert('Your application is still pending.');
+        } else {
+            alert('You already have an application record for this organization.');
+        }
         return;
     }
 
@@ -157,6 +189,7 @@ window.submitApp = async function() {
     }
 
     alert('Application sent to Student Leader!');
+    await updateJoinButtonState(orgId);
     window.closeModal();
 };
 

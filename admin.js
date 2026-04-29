@@ -42,6 +42,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     let editingOrgId   = null;
     let assigningOrgId = null;
 
+    function isBeforeToday(dateValue) {
+        if (!dateValue) return false;
+        const eventDate = new Date(dateValue);
+        if (Number.isNaN(eventDate.getTime())) return false;
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        return eventDate < todayStart;
+    }
+
+    function setMinToday(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        input.min = new Date(todayStart.getTime() - todayStart.getTimezoneOffset() * 60000)
+            .toISOString()
+            .slice(0, 16);
+    }
+
+    async function rejectExpiredPendingEvents(events = null) {
+        const rows = events || await getEvents();
+        const expired = rows.filter(ev => !ev.approved && ev.rejected !== true && isBeforeToday(ev.date));
+        if (expired.length === 0) return rows;
+
+        await Promise.all(expired.map(ev =>
+            supabaseAdmin
+                .from('events')
+                .update({ approved: false, rejected: true })
+                .eq('id', ev.id)
+        ));
+
+        return rows.map(ev =>
+            expired.some(exp => exp.id === ev.id)
+                ? { ...ev, approved: false, rejected: true }
+                : ev
+        );
+    }
+
     // ---- GET USERS from Supabase profiles table ----
     async function getAllUsers() {
         try {
@@ -111,7 +149,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---- RENDER EVENTS ----
     async function renderEvents() {
         if (!eventContainer) return;
-        const events = await getEvents();
+        const events = await rejectExpiredPendingEvents(await getEvents());
         const filterEl = document.getElementById('eventStatusFilter');
         const activeFilter = filterEl ? filterEl.value : 'needs_approval';
 
@@ -209,6 +247,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('.approve-event').forEach(btn => {
             btn.addEventListener('click', async e => {
                 const id = parseInt(e.target.closest('.org-card-horizontal').dataset.id);
+                const events = await getEvents();
+                const event = events.find(ev => ev.id === id);
+                if (event && isBeforeToday(event.date)) {
+                    await supabaseAdmin.from('events').update({ approved: false, rejected: true }).eq('id', id);
+                    alert('This event date has already passed, so it was moved to Not Approved.');
+                    await renderEvents();
+                    return;
+                }
                 await supabaseAdmin.from('events').update({ approved: true, rejected: false }).eq('id', id);
                 await renderEvents();
             });
@@ -410,6 +456,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // ---- ADD EVENT BUTTON ----
     document.getElementById('addEventBtn').addEventListener('click', async () => {
         eventForm.reset();
+        setMinToday('eventDateTime');
         const orgs   = await getOrgs();
         const select = document.getElementById('eventOrg');
         if (select) {
@@ -512,10 +559,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const orgSelect       = document.getElementById('eventOrg');
         const selectedOrgId   = orgSelect ? parseInt(orgSelect.value) : null;
         const selectedOrgName = orgSelect ? orgSelect.options[orgSelect.selectedIndex].text : 'Admin';
+        const rawDate = document.getElementById('eventDateTime').value;
+        if (!rawDate) { alert('Please set an event date and time.'); return; }
+        if (isBeforeToday(rawDate)) {
+            alert('Hindi pwede ang nakaraang petsa. Pumili ng date na hindi pa lumipas.');
+            return;
+        }
         const newEvent = {
             title:       document.getElementById('eventTitle').value.trim(),
             description: document.getElementById('eventDescription').value.trim(),
-            date:        document.getElementById('eventDateTime').value || null,
+            date:        rawDate,
             org:         selectedOrgName || 'Admin',
             org_id:      selectedOrgId || null,
             location:    document.getElementById('eventLocation').value.trim(),

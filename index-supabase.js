@@ -49,7 +49,7 @@ function render() {
     const filtered = organizations.filter(org => {
         const matchesCat = filters.category === 'all' || org.category === filters.category;
         const matchesDept = filters.department === 'all' || org.department === filters.department;
-        const matchesSearch = (org.name || '').toLowerCase().includes(filters.searchQuery.toLowerCase());
+        const matchesSearch = (org.name || '').toLowerCase().includes(filters.searchQuery.trim().toLowerCase());
         return matchesCat && matchesDept && matchesSearch && org.approved !== false;
     });
 
@@ -143,6 +143,12 @@ function eventVisibilityBadge(ev) {
 function renderJoinStatus(ev) {
     const user = authState.user;
     if (!user) {
+        if (ev.visibility === 'exclusive') {
+            return `<div style="margin-top:8px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+                <span style="display:inline-block;padding:3px 10px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:10px;font-weight:700;">🔒 Members Only - Sign in and join the org first</span>
+                <a href="sign_in.html" style="display:inline-flex;align-items:center;justify-content:center;width:96px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">Sign In</a>
+            </div>`;
+        }
         return `<div style="margin-top:8px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
             <span style="display:inline-block;padding:3px 10px;background:rgba(99,102,241,0.15);color:#818cf8;border-radius:8px;font-size:10px;font-weight:700;">🌐 Open to everyone - Sign in to join</span>
             <a href="sign_in.html" style="display:inline-flex;align-items:center;justify-content:center;width:96px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">Join</a>

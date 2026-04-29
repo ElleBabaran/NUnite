@@ -288,7 +288,6 @@ async function renderNotifications() {
 
     const email = authState.user.email;
     const myJoins = joins.filter(j => j.email === email);
-    const myEventJoins = eventJoins.filter(j => (j.user_email || j.email) === email);
     const approvedOrgIds = myJoins
         .filter(j => j.status === 'approved')
         .map(j => String(j.org_id));
@@ -298,7 +297,6 @@ async function renderNotifications() {
         (!ev.date || new Date(ev.date) >= now)
     );
     const completedOrgApplications = myJoins.filter(j => ['approved', 'rejected'].includes(j.status));
-    const completedEventRequests = myEventJoins.filter(j => ['approved', 'rejected'].includes(j.status));
     const visible = [
         ...memberOrgEvents.map(ev => ({
             title: 'New organization event',
@@ -308,13 +306,6 @@ async function renderNotifications() {
             title: 'Organization application',
             text: `${j.org_name || 'Organization'}: ${j.status.toUpperCase()}`,
         })),
-        ...completedEventRequests.map(j => {
-            const ev = events.find(e => String(e.id) === String(j.event_id));
-            return {
-                title: 'Event request',
-                text: `${ev?.title || 'Event'}: ${j.status.toUpperCase()}`,
-            };
-        }),
     ];
     count = visible.length;
     html += visible.length === 0

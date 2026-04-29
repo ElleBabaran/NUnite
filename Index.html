@@ -415,16 +415,44 @@
                     const isLeaderOfThisOrg = leaderOrgName && ev.createdBy === 'leader' && ev.org === leaderOrgName;
                     let joinBtnHtml = '';
                     if (isLoggedIn && !isAdmin && !isLeaderOfThisOrg && userEmail) {
-                        const evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
-                        const myEvJoin = evJoins.find(j => String(j.eventId) === String(ev.id) && j.email === userEmail);
-                        if (!myEvJoin) {
+                        const evJoins    = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+                        const orgJoins   = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+                        const allOrgsEv  = JSON.parse(localStorage.getItem('nunite_organizations') || '[]');
+                        const myEvJoin   = evJoins.find(j => String(j.eventId) === String(ev.id) && j.email === userEmail);
+                        const eventOrg   = allOrgsEv.find(o => o.name === ev.org);
+                        const eventOrgId = eventOrg ? String(eventOrg.id) : null;
+                        const myOrgJoin  = eventOrgId ? orgJoins.find(j => String(j.orgId) === eventOrgId && j.email === userEmail) : null;
+                        const isOrgMember   = myOrgJoin && myOrgJoin.status === 'approved';
+                        const isOrgPending  = myOrgJoin && (myOrgJoin.status || 'pending') === 'pending';
+                        const isOrgRejected = myOrgJoin && myOrgJoin.status === 'rejected';
+                        const isExclusive   = ev.visibility === 'exclusive';
+                        if (myEvJoin) {
+                            if (myEvJoin.status === 'approved') {
+                                joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(34,197,94,0.2);color:#4ade80;border-radius:8px;font-size:11px;font-weight:700;">✅ Attending</span>`;
+                            } else if (myEvJoin.status === 'rejected') {
+                                joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(239,68,68,0.2);color:#f87171;border-radius:8px;font-size:11px;font-weight:700;">❌ Request Declined</span>`;
+                            } else {
+                                joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;">⏳ Request Pending</span>`;
+                            }
+                        } else if (!eventOrgId || isOrgMember) {
+                            // Org member (or no org linked) — join immediately as approved
                             joinBtnHtml = `<button onclick="attendEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')" style="margin-top:8px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;">Join</button>`;
-                        } else if ((myEvJoin.status || 'pending') === 'pending') {
-                            joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;">⏳ Request Pending</span>`;
-                        } else if (myEvJoin.status === 'approved') {
-                            joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(34,197,94,0.2);color:#4ade80;border-radius:8px;font-size:11px;font-weight:700;">✅ Attending</span>`;
-                        } else if (myEvJoin.status === 'rejected') {
-                            joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(239,68,68,0.2);color:#f87171;border-radius:8px;font-size:11px;font-weight:700;">❌ Request Declined</span>`;
+                        } else if (isExclusive) {
+                            // Exclusive event — non-members blocked; prompt to apply
+                            if (isOrgPending) {
+                                joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;">🔒 Members Only · ⏳ Membership Pending</span>`;
+                            } else if (isOrgRejected) {
+                                joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(239,68,68,0.2);color:#f87171;border-radius:8px;font-size:11px;font-weight:700;">🔒 Members Only · ❌ Org Join Rejected</span>`;
+                            } else {
+                                joinBtnHtml = `<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"><span style="display:inline-block;padding:3px 10px;background:rgba(99,102,241,0.15);color:#818cf8;border-radius:8px;font-size:10px;font-weight:700;">🔒 Members Only — Join the org first!</span><a href="viewdetails.html?id=${eventOrgId}" onclick="alert(String.raw\`This event is for members of ${ev.org} only.\n\nClick OK to go to the org page and apply to join!\`)" style="display:inline-block;margin-top:4px;padding:5px 14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;text-align:center;">View Org &amp; Apply →</a></div>`;
+                            }
+                        } else if (isOrgPending) {
+                            joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;">⏳ Org Membership Pending</span>`;
+                        } else if (isOrgRejected) {
+                            joinBtnHtml = `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(239,68,68,0.2);color:#f87171;border-radius:8px;font-size:11px;font-weight:700;">❌ Org Join Rejected</span>`;
+                        } else {
+                            // Not in org, open event — can still request to join
+                            joinBtnHtml = `<button onclick="attendEvent('${ev.id}','${(ev.title||'').replace(/'/g,"\\'")}')" style="margin-top:8px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;">Join</button>`;
                         }
                     }
 
@@ -605,19 +633,52 @@
             }
 
             if (isLeader && myOrgId) {
-                const allJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
-                const pendingMembers = allJoins.filter(j => String(j.orgId) === myOrgId && (j.status || 'pending') === 'pending');
-                const evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
-                const myEvents = (JSON.parse(localStorage.getItem('nunite_events') || '[]')).filter(ev => String(ev.orgId) === myOrgId || ev.org === (JSON.parse(localStorage.getItem('nunite_organizations') || '[]')).find(o => String(o.id) === myOrgId)?.name);
-                const myEvIds = myEvents.map(ev => String(ev.id));
-                const pendingAttendees = evJoins.filter(j => myEvIds.includes(String(j.eventId)) && (j.status || 'pending') === 'pending');
-                const totalBadge = pendingMembers.length + pendingAttendees.length;
+                // Resolve org name from localStorage
+                const allOrgsL     = JSON.parse(localStorage.getItem('nunite_organizations') || '[]');
+                const myOrgObj     = allOrgsL.find(o => String(o.id) === myOrgId);
+                const myOrgNameL   = myOrgObj ? myOrgObj.name : '';
 
-                btn.style.display = 'block';
+                const allJoins        = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+                const pendingMembers  = allJoins.filter(j => String(j.orgId) === myOrgId && (j.status || 'pending') === 'pending');
+                const evJoins         = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+                const allEventsL      = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                const myOrgEventsL    = allEventsL.filter(ev => ev.org === myOrgNameL);
+                const myEvIdsL        = myOrgEventsL.map(ev => String(ev.id));
+                const pendingAttendees = evJoins.filter(j => myEvIdsL.includes(String(j.eventId)) && (j.status || 'pending') === 'pending');
+
+                // Event approved / rejected (not yet seen by leader)
+                const approvedEventsL = myOrgEventsL.filter(ev => ev.approved && !ev._leaderSeen);
+                const rejectedEventsL = myOrgEventsL.filter(ev => ev.rejected === true && !ev._leaderSeen);
+
+                // Became-a-leader notification (set by admin.js on assign)
+                const leaderNewKey   = 'nunite_leader_newassign_' + userEmail;
+                const isNewlyLeader  = localStorage.getItem(leaderNewKey) === 'true';
+
+                const totalBadge = pendingMembers.length + pendingAttendees.length
+                                 + approvedEventsL.length + rejectedEventsL.length
+                                 + (isNewlyLeader ? 1 : 0);
+
+                btn.style.display   = 'block';
                 badge.style.display = totalBadge > 0 ? 'flex' : 'none';
                 badge.textContent   = totalBadge > 9 ? '9+' : totalBadge;
 
                 let html = '<div class="notif-header">🔔 Leader Notifications</div>';
+
+                // 1. Became a leader
+                if (isNewlyLeader) {
+                    html += `<div class="notif-item" style="cursor:pointer;"
+                        onclick="localStorage.removeItem('${leaderNewKey}');window.location.href='leaderdash.html';">
+                        <div class="notif-date" style="background:linear-gradient(135deg,#6366f1,#7c3aed);">
+                            <span style="font-size:18px;">🎉</span>
+                        </div>
+                        <div class="notif-info">
+                            <h4>You're now a Student Leader!</h4>
+                            <p>You've been assigned leader of <strong>${myOrgNameL}</strong></p>
+                        </div>
+                    </div>`;
+                }
+
+                // 2. Pending member join requests
                 if (pendingMembers.length > 0) {
                     html += pendingMembers.slice(0, 3).map(j => `
                         <div class="notif-item" style="cursor:pointer;" onclick="window.location.href='leaderdash.html'">
@@ -630,6 +691,8 @@
                             </div>
                         </div>`).join('');
                 }
+
+                // 3. Pending event attendee requests
                 if (pendingAttendees.length > 0) {
                     html += pendingAttendees.slice(0, 3).map(j => `
                         <div class="notif-item" style="cursor:pointer;" onclick="window.location.href='leaderdash.html'">
@@ -642,10 +705,40 @@
                             </div>
                         </div>`).join('');
                 }
-                if (totalBadge === 0) html += '<div class="notif-empty">No pending requests.</div>';
+
+                // 4. Event approved by admin
+                if (approvedEventsL.length > 0) {
+                    html += approvedEventsL.slice(0, 3).map(ev => `
+                        <div class="notif-item" style="cursor:pointer;" onclick="window.location.href='leaderdash.html'">
+                            <div class="notif-date" style="background:linear-gradient(135deg,#22c55e,#16a34a);">
+                                <span style="font-size:18px;">✅</span>
+                            </div>
+                            <div class="notif-info">
+                                <h4>Event Approved!</h4>
+                                <p><strong>${ev.title}</strong> is now live</p>
+                            </div>
+                        </div>`).join('');
+                }
+
+                // 5. Event rejected by admin
+                if (rejectedEventsL.length > 0) {
+                    html += rejectedEventsL.slice(0, 3).map(ev => `
+                        <div class="notif-item" style="cursor:pointer;" onclick="window.location.href='leaderdash.html'">
+                            <div class="notif-date" style="background:linear-gradient(135deg,#ef4444,#b91c1c);">
+                                <span style="font-size:18px;">❌</span>
+                            </div>
+                            <div class="notif-info">
+                                <h4>Event Not Approved</h4>
+                                <p><strong>${ev.title}</strong> was rejected by admin</p>
+                            </div>
+                        </div>`).join('');
+                }
+
+                if (totalBadge === 0) html += '<div class="notif-empty">No new notifications.</div>';
                 if (totalBadge > 0) {
                     html += `<div style="padding:10px 14px;text-align:center;border-top:1px solid #f1f1f1;">
-                        <a href="leaderdash.html" style="font-size:11px;font-weight:700;color:#6366f1;text-decoration:none;">Go to Leader Dashboard →</a>
+                        <button onclick="markLeaderNotifSeen()" style="font-size:11px;font-weight:700;color:#6366f1;background:none;border:1px solid #e8eaf6;cursor:pointer;padding:4px 12px;border-radius:8px;">Mark all as seen</button>
+                        <a href="leaderdash.html" style="display:block;margin-top:6px;font-size:11px;font-weight:700;color:#6366f1;text-decoration:none;">Go to Leader Dashboard →</a>
                     </div>`;
                 }
                 notifDd.innerHTML = html;
@@ -659,17 +752,30 @@
             const pending  = myJoins.filter(j => (j.status || 'pending') === 'pending');
             const rejected = myJoins.filter(j => j.status === 'rejected');
 
-            // Only show newly approved/rejected (not yet seen)
+            // Newly approved/rejected (not yet seen)
             const newlyApproved = approved.filter(j => !j._studentSeen);
             const newlyRejected = rejected.filter(j => !j._studentSeen);
-            const totalBadge    = newlyApproved.length + newlyRejected.length;
+
+            // New upcoming events from orgs the student is a member of (not yet seen)
+            const myApprovedOrgIds  = approved.map(j => String(j.orgId));
+            const allOrgsForNotif   = JSON.parse(localStorage.getItem('nunite_organizations') || '[]');
+            const allEventsForNotif = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            const nowTs = new Date();
+            const newEvents = allEventsForNotif.filter(ev => {
+                if (!ev.approved) return false;
+                if (ev.date && new Date(ev.date) < nowTs) return false;
+                if (ev._studentSeenBy && ev._studentSeenBy.includes(userEmail)) return false;
+                const evOrg = allOrgsForNotif.find(o => o.name === ev.org);
+                return evOrg && myApprovedOrgIds.includes(String(evOrg.id));
+            });
+
+            const totalBadge = newlyApproved.length + newlyRejected.length + newEvents.length;
 
             btn.style.display = 'block';
             badge.style.display = totalBadge > 0 ? 'flex' : 'none';
             badge.textContent   = totalBadge > 9 ? '9+' : totalBadge;
 
-            // Build dropdown — ONLY org join status notifications
-            let html = '<div class="notif-header">🔔 Organization Status</div>';
+            let html = '<div class="notif-header">🔔 Notifications</div>';
 
             if (newlyApproved.length > 0) {
                 html += newlyApproved.map(j => `
@@ -707,8 +813,26 @@
                         </div>
                     </div>`).join('');
             }
+            if (newEvents.length > 0) {
+                html += newEvents.slice(0, 5).map(ev => {
+                    const d = ev.date ? new Date(ev.date) : null;
+                    const month = d ? d.toLocaleString('default',{month:'short'}).toUpperCase() : '—';
+                    const day   = d ? d.getDate() : '—';
+                    return `
+                    <div class="notif-item">
+                        <div class="notif-date">
+                            <span class="nd-month">${month}</span>
+                            <span class="nd-day">${day}</span>
+                        </div>
+                        <div class="notif-info">
+                            <h4>New Event: ${ev.title}</h4>
+                            <p>From <strong>${ev.org}</strong>${ev.location ? ' · 📍 ' + ev.location : ''}</p>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
 
-            if (newlyApproved.length === 0 && newlyRejected.length === 0 && pending.length === 0) {
+            if (totalBadge === 0 && pending.length === 0) {
                 html += '<div class="notif-empty">No notifications yet.</div>';
             }
 
@@ -721,8 +845,21 @@
             notifDd.innerHTML = html;
         }
 
+        function markLeaderNotifSeen() {
+            const ue = localStorage.getItem('userEmail') || '';
+            if (!ue) return;
+            // Clear became-a-leader flag
+            localStorage.removeItem('nunite_leader_newassign_' + ue);
+            // Mark leader's event notifications as seen
+            let evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            evs = evs.map(ev => ({ ...ev, _leaderSeen: true }));
+            localStorage.setItem('nunite_events', JSON.stringify(evs));
+            initNotifications();
+        }
+
         function markStudentNotifSeen() {
             const userEmail = localStorage.getItem('userEmail') || '';
+            // Mark org joins as seen
             let joins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
             joins = joins.map(j => {
                 if (j.email === userEmail && (j.status === 'approved' || j.status === 'rejected')) {
@@ -731,14 +868,35 @@
                 return j;
             });
             localStorage.setItem('nunite_joins', JSON.stringify(joins));
+            // Mark new events as seen for this student
+            let evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            evs = evs.map(ev => {
+                const seen = ev._studentSeenBy ? [...ev._studentSeenBy] : [];
+                if (!seen.includes(userEmail)) seen.push(userEmail);
+                return { ...ev, _studentSeenBy: seen };
+            });
+            localStorage.setItem('nunite_events', JSON.stringify(evs));
             initNotifications();
         }
 
-        // ── ATTEND EVENT ──
+        // ── ATTEND EVENT — auto-approved (user is already an org member) ──
         window.attendEvent = function(eventId, eventTitle) {
             const userEmail    = localStorage.getItem('userEmail') || '';
             const userFullName = localStorage.getItem('userFullName') || '';
             if (!userEmail) { alert('Please sign in first.'); return; }
+            // Check if user is an approved member of the org that owns this event
+            const allEvents  = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            const allOrgs    = JSON.parse(localStorage.getItem('nunite_organizations') || '[]');
+            const orgJoins   = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+            const thisEvent  = allEvents.find(e => String(e.id) === String(eventId));
+            const eventOrg   = thisEvent ? allOrgs.find(o => o.name === thisEvent.org) : null;
+            const eventOrgId = eventOrg ? String(eventOrg.id) : null;
+            const myOrgJoin  = eventOrgId ? orgJoins.find(j => String(j.orgId) === eventOrgId && j.email === userEmail) : null;
+            const isOrgMember = myOrgJoin && myOrgJoin.status === 'approved';
+            if (eventOrgId && !isOrgMember) {
+                alert('You must be an approved member of ' + (thisEvent.org || 'the organization') + ' to attend this event.');
+                return;
+            }
             const evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
             const already = evJoins.find(j => String(j.eventId) === String(eventId) && j.email === userEmail);
             if (already) { renderEvents(); return; }
@@ -747,11 +905,55 @@
                 eventId:  String(eventId),
                 email:    userEmail,
                 name:     userFullName,
-                status:   'pending',
+                status:   'approved',
                 joinedAt: new Date().toISOString()
             });
             localStorage.setItem('nunite_event_joins', JSON.stringify(evJoins));
             renderEvents();
+        };
+
+        // ── APPLY TO ORG FOR EVENT — submit org application AND queue event join as pending ──
+        window.applyToOrgForEvent = function(orgId, orgName, eventId) {
+            const userEmail    = localStorage.getItem('userEmail') || '';
+            const userFullName = localStorage.getItem('userFullName') || '';
+            if (!userEmail) { alert('Please sign in first.'); return; }
+            const orgJoins = JSON.parse(localStorage.getItem('nunite_joins') || '[]');
+            const alreadyApplied = orgJoins.some(j => String(j.orgId) === String(orgId) && j.email === userEmail);
+            if (alreadyApplied) {
+                alert('You already have a pending membership request for ' + orgName + '. Please wait for approval before joining their events.');
+                return;
+            }
+            const apply = confirm('To join this event you must first be a member of ' + orgName + '.\n\nSubmit a membership application now?');
+            if (!apply) return;
+            // Add org application
+            orgJoins.push({
+                id:        Date.now(),
+                orgId:     String(orgId),
+                orgName:   orgName,
+                name:      userFullName,
+                email:     userEmail,
+                status:    'pending',
+                reason:    'Applied via event join request.',
+                appliedAt: new Date().toISOString()
+            });
+            localStorage.setItem('nunite_joins', JSON.stringify(orgJoins));
+            // Also queue the event join as pending so leader can see it in attendees tab
+            if (eventId) {
+                const evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+                const alreadyQueued = evJoins.some(j => String(j.eventId) === String(eventId) && j.email === userEmail);
+                if (!alreadyQueued) {
+                    evJoins.push({
+                        id:       Date.now() + '-ev',
+                        eventId:  String(eventId),
+                        email:    userEmail,
+                        name:     userFullName,
+                        status:   'pending',
+                        joinedAt: new Date().toISOString()
+                    });
+                    localStorage.setItem('nunite_event_joins', JSON.stringify(evJoins));
+                }
+            }
+            window.location.href = 'viewdetails.html?id=' + orgId;
         };
 
         // Initialize

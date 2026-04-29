@@ -66,8 +66,17 @@ function checkLogin(action) {
         const isApprovedMember = existingJoin && existingJoin.status === 'approved';
         const isPendingMember = existingJoin && (existingJoin.status || 'pending') === 'pending';
 
+        // ── NEW: leaders can't join their own org ──
+        const leaderOrgName = localStorage.getItem('leaderOrgName') || '';
+        const isLeaderOfThisOrg = leaderOrgName && org && org.name === leaderOrgName;
+
         if (action === 'join') {
-            if (isApprovedMember) {
+            if (isLeaderOfThisOrg) {
+                content.innerHTML = `
+                    <h3 class="info-title">You're the Leader! 🏅</h3>
+                    <p style="font-size: 13px; color: #64748b; margin-top: 12px;">You are the student leader of <strong>${org.name}</strong>. Leaders don't need to apply as members.</p>
+                `;
+            } else if (isApprovedMember) {
                 content.innerHTML = `
                     <h3 class="info-title">You're Already a Member! ✅</h3>
                     <p style="font-size: 13px; color: #64748b; margin-top: 12px;">You are already an approved member of <strong>${org.name}</strong>. No need to apply again.</p>

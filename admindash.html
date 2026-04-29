@@ -105,7 +105,7 @@
             justify-content: space-between !important;
             padding: 14px 18px !important;
             gap: 14px !important;
-            flex-wrap: wrap !important;
+            flex-wrap: nowrap !important;
             border-radius: 12px !important;
             margin-bottom: 10px !important;
             border: 1.5px solid #e8eaf6 !important;
@@ -128,9 +128,9 @@
         }
         .org-card-actions {
             display: flex !important;
+            flex-direction: column !important;
             gap: 8px !important;
-            flex-wrap: wrap !important;
-            align-items: center !important;
+            align-items: stretch !important;
             flex-shrink: 0 !important;
         }
         .action-btn {
@@ -140,7 +140,10 @@
             font-weight: 700 !important;
             cursor: pointer !important;
             white-space: nowrap !important;
+            text-align: center !important;
+            width: 100% !important;
         }
+        /* Button min-widths controlled by CSS .action-btn flex */
         /* dashboard-header title fix */
         .dashboard-header {
             display: flex !important;
@@ -182,14 +185,6 @@
                         <p>Manage student organizations</p>
                     </div>
                     <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
-                        <!-- Admin Notification Bell -->
-                        <div id="adminNotifBell" style="position:relative;display:none;">
-                            <button onclick="document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.querySelector('[data-section=events]').classList.add('active'); document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active')); document.getElementById('events').classList.add('active');"
-                                style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;">
-                                🔔
-                            </button>
-                            <span id="adminNotifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;pointer-events:none;"></span>
-                        </div>
                         <button id="adminSignOutBtn" class="admin-logout-btn">Sign Out</button>
                     </div>
                 </div>
@@ -286,8 +281,8 @@
             </div>
             
             <div class="form-group">
-                <label for="orgCategory">Category</label>
-                <select id="orgCategory">
+                <label for="orgCategory">Category*</label>
+                <select id="orgCategory" required>
                     <option value="all">All Categories</option>
                     <option value="sports">Sports</option>
                     <option value="arts">Arts</option>
@@ -311,12 +306,12 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="contactPerson">Contact Person</label>
-                    <input type="text" id="contactPerson">
+                    <label for="contactPerson">Contact Person*</label>
+                    <input type="text" id="contactPerson" required>
                 </div>
                 <div class="form-group">
-                    <label for="contactEmail">Contact Email</label>
-                    <input type="email" id="contactEmail">
+                    <label for="contactEmail">Contact Email*</label>
+                    <input type="email" id="contactEmail" required>
                 </div>
             </div>
 
@@ -325,20 +320,12 @@
                     <label for="website">Website</label>
                     <input type="url" id="website">
                 </div>
-                <div class="form-group">
-                    <label for="memberCount">Member Count</label>
-                    <input type="number" id="memberCount">
-                </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label for="meetingTime">Meeting Time</label>
-                    <input type="text" id="meetingTime">
-                </div>
-                <div class="form-group">
-                    <label for="location">Location</label>
-                    <input type="text" id="location">
+                    <label for="location">Location*</label>
+                    <input type="text" id="location" required>
                 </div>
             </div>
 
@@ -406,7 +393,7 @@
 </div>
 
     <div id="eventModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width:700px;width:95%;">
             <span class="close-btn">&times;</span>
             <h3>Add New Event</h3>
             <form id="eventForm">
@@ -433,6 +420,13 @@
                         <label for="eventLocation">Location</label>
                         <input type="text" id="eventLocation">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="eventVisibility">Who can join?</label>
+                    <select id="eventVisibility" required style="width:100%;padding:10px 14px;border:1.5px solid #e0e0f0;border-radius:9px;font-size:13px;font-weight:600;color:#272789;background:#f8f8ff;cursor:pointer;outline:none;">
+                        <option value="everyone">🌐 Everyone (open to all)</option>
+                        <option value="exclusive">🔒 Members Only (org members only)</option>
+                    </select>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="cancel-btn">Cancel</button>

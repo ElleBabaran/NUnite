@@ -380,9 +380,10 @@
                         <p id="leaderOrgSubtitle" style="color:rgba(255,255,255,0.65);font-size:13px;margin:0;"></p>
                     </div>
 
-                    <!-- Sign Out pinned to right edge -->
-                    <div style="display:flex;align-items:center;gap:12px;">
-                        <button id="leaderSignOutBtn" class="admin-logout-btn">Sign Out</button>
+                    <!-- Sign Out pinned to right edge -->\r
+                    <div style="display:flex;align-items:center;gap:12px;">\r
+r
+                        <button id="leaderSignOutBtn" class="admin-logout-btn">Sign Out</button>\r
                     </div>
                 </div>
 
@@ -507,6 +508,13 @@
                         <label for="ldEventLocation">Location</label>
                         <input type="text" id="ldEventLocation">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="ldEventVisibility">Who can join?</label>
+                    <select id="ldEventVisibility" required style="width:100%;padding:10px 14px;border:1.5px solid #e0e0f0;border-radius:9px;font-size:13px;font-weight:600;color:#272789;background:#f8f8ff;cursor:pointer;outline:none;">
+                        <option value="everyone">🌐 Everyone (open to all)</option>
+                        <option value="exclusive">🔒 Members Only (org members only)</option>
+                    </select>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="cancel-btn" id="cancelLeaderEventBtn">Cancel</button>
@@ -744,7 +752,7 @@
                         <div class="member-avatar">${initial}</div>
                         <div>
                             <p class="member-name">${m.name || 'Unknown'}</p>
-                            <p class="member-meta">${m.email} · ${m.department || 'No dept'}</p>
+                            <p class="member-meta">${m.email}${m.department ? ' · ' + m.department : ''}</p>
                         </div>
                     </div>
                     <div class="member-card-actions">
@@ -781,12 +789,24 @@
                 card.querySelector('.do-approve')?.addEventListener('click', () => {
                     const m = getMembers().find(x => x.email === email);
                     if (!m) return;
-                    m.status = 'approved'; saveJoin(m); renderMembers(); updateLeaderBell();
+                    m.status = 'approved'; saveJoin(m);
+                    // Auto-approve any pending event joins for this user in this org's events
+                    const allEvents = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+                    const orgEvIds  = allEvents.filter(ev => ev.org === myOrgName).map(ev => String(ev.id));
+                    let evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+                    evJoins = evJoins.map(j => {
+                        if (j.email === email && orgEvIds.includes(String(j.eventId)) && (j.status || 'pending') === 'pending') {
+                            return { ...j, status: 'approved' };
+                        }
+                        return j;
+                    });
+                    localStorage.setItem('nunite_event_joins', JSON.stringify(evJoins));
+                    renderMembers(); 
                 });
                 card.querySelector('.do-reject')?.addEventListener('click', () => {
                     const m = getMembers().find(x => x.email === email);
                     if (!m) return;
-                    m.status = 'rejected'; saveJoin(m); renderMembers(); updateLeaderBell();
+                    m.status = 'rejected'; saveJoin(m); renderMembers(); 
                 });
             });
         }
@@ -801,9 +821,20 @@
             if (!currentReasonMember) return;
             currentReasonMember.status = 'approved';
             saveJoin(currentReasonMember);
+            // Auto-approve any pending event joins for this member in this org's events
+            const _allEvents = JSON.parse(localStorage.getItem('nunite_events') || '[]');
+            const _orgEvIds  = _allEvents.filter(ev => ev.org === myOrgName).map(ev => String(ev.id));
+            let _evJoins = JSON.parse(localStorage.getItem('nunite_event_joins') || '[]');
+            _evJoins = _evJoins.map(j => {
+                if (j.email === currentReasonMember.email && _orgEvIds.includes(String(j.eventId)) && (j.status || 'pending') === 'pending') {
+                    return { ...j, status: 'approved' };
+                }
+                return j;
+            });
+            localStorage.setItem('nunite_event_joins', JSON.stringify(_evJoins));
             document.getElementById('reasonModal').style.display = 'none';
             renderMembers();
-            updateLeaderBell();
+            
         });
         document.getElementById('reasonRejectBtn').addEventListener('click', () => {
             if (!currentReasonMember) return;
@@ -811,7 +842,7 @@
             saveJoin(currentReasonMember);
             document.getElementById('reasonModal').style.display = 'none';
             renderMembers();
-            updateLeaderBell();
+            
         });
         window.addEventListener('click', e => {
             const modal = document.getElementById('reasonModal');
@@ -939,6 +970,7 @@
                 date:        document.getElementById('ldEventDateTime').value,
                 org:         myOrgName,
                 location:    document.getElementById('ldEventLocation').value.trim(),
+                visibility:  document.getElementById('ldEventVisibility').value || 'everyone',
                 approved:    false,          // pending admin approval
                 createdBy:   'leader',
             };
@@ -989,7 +1021,6 @@
                 description: document.getElementById('editEventDescription').value.trim(),
                 date:        document.getElementById('editEventDateTime').value,
                 location:    document.getElementById('editEventLocation').value.trim(),
-                approved:    false,   // reset to pending after edit
             } : ev);
             localStorage.setItem('nunite_events', JSON.stringify(evs));
             document.getElementById('editEventModal').style.display = 'none';
@@ -1005,14 +1036,10 @@
             window.location.href = 'sign_in.html';
         });
 
-        // ── LEADER NOTIFICATION BELL — events approved/rejected only ──
-        function updateLeaderBell() { /* bell removed */ }
+        // ── LEADER NOTIFICATION BELL ──
 
-        window.markLeaderEventsSeen = function() {
-            let evs = JSON.parse(localStorage.getItem('nunite_events') || '[]');
-            evs = evs.map(ev => ev.org === myOrgName ? { ...ev, _leaderSeen: true } : ev);
-            localStorage.setItem('nunite_events', JSON.stringify(evs));
-        };
+
+
 
         // ── RENDER ATTENDEES (accordion per event) ──
         function renderAttendees() {
@@ -1168,7 +1195,7 @@
                     alert(`✅ ${name} added to Members as Pending. Approve them in the Members tab first, then come back to approve their event attendance.`);
                     renderAttendees();
                     renderMembers();
-                    updateLeaderBell();
+                    
                 });
             });
         }
@@ -1193,6 +1220,7 @@
         // ── INIT ──
         renderMembers();
         renderAttendees();
+        
 
     })();
     </script>

@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const evs = getEvents().map(ev => ev.id === id ? Object.assign({}, ev, { approved: false, rejected: true }) : ev);
                 saveEvents(evs);
                 renderEvents();
-                updateAdminBell();
+                
             });
         });
         document.querySelectorAll('.delete-event').forEach(btn => {
@@ -396,6 +396,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         org_name: org ? org.name : '',
                     });
                     if (error) { alert('Error assigning leader: ' + error.message); return; }
+                    // Set bell notification flag for the newly assigned leader
+                    localStorage.setItem('nunite_leader_newassign_' + email, 'true');
                     alert(name + ' assigned as leader of ' + (org ? org.name : '') + '!');
                 }
                 await renderStudentList(document.getElementById('studentSearchInput').value);
@@ -494,8 +496,6 @@ document.addEventListener('DOMContentLoaded', () => {
             contactEmail:     document.getElementById('contactEmail').value.trim(),
             email:            document.getElementById('contactEmail').value.trim(),
             website:          document.getElementById('website').value.trim(),
-            memberCount:      0,
-            meetingTime:      '',
             location:         document.getElementById('location').value.trim(),
             applicationsOpen: document.getElementById('applicationsStatus').checked,
             approved:         document.getElementById('applicationsStatus').checked,
@@ -531,6 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
             date:        document.getElementById('eventDateTime').value,
             org:         selectedOrgName || 'Admin',
             location:    document.getElementById('eventLocation').value.trim(),
+            visibility:  document.getElementById('eventVisibility').value || 'everyone',
             approved:    true,
             createdBy:   'admin',
         };
@@ -577,19 +578,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'sign_in.html';
     });
 
-    // ---- ADMIN BELL ----
-    function updateAdminBell() {
-        const bell  = document.getElementById('adminNotifBell');
-        const badge = document.getElementById('adminNotifBadge');
-        if (!bell) return;
-        const evs     = getEvents();
-        const pending = evs.filter(ev => !ev.approved && ev.rejected !== true).length;
-        bell.style.display  = 'block';
-        badge.textContent   = pending > 9 ? '9+' : pending;
-        badge.style.display = pending > 0 ? 'flex' : 'none';
-    }
 
     // ---- INIT ----
     renderOrgs();
     renderEvents();
+    
 });

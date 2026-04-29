@@ -86,17 +86,27 @@ body {
 }
 
 .add-button {
-    background-color: #272789;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    background-color: #272789 !important;
+    color: white !important;
+    border: none !important;
+    padding: 12px 28px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 180px !important;
+    white-space: nowrap !important;
+    box-shadow: 0 4px 12px rgba(39,39,137,0.3) !important;
+}
+
+.add-button:hover {
+    background-color: #4a4aeb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(39,39,137,0.4) !important;
 }
 
 .add-button .icon {
@@ -473,23 +483,34 @@ textarea {
     max-width: 500px;
 }
 
-/* Buttons Section */
-.org-card-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    min-width: 100px;
+
+    flex-wrap: wrap !important;
+    min-width: auto !important;
+    padding: 4px !important;
 }
 
 .action-btn {
-    padding: 5px 15px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    border: 1px solid #333;
-    background: #fff;
-    transition: 0.2s;
+    flex: 1 !important;
+    min-width: 65px !important;
+    max-width: 120px !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    border: 1.5px solid #333 !important;
+    background: #fff !important;
+    transition: all 0.2s !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
 }
 
 .action-btn.view:hover, .action-btn.edit:hover {
@@ -717,4 +738,9 @@ textarea {
     border-radius: 7px;
     cursor: pointer;
     font-size: 13px;
+}
+
+/* Wider Add Event modal */
+#eventModal .modal-content {
+    max-width: 800px;
 }

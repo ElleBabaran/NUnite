@@ -162,7 +162,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
         if (filtered.length === 0) {
             body.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
+                    <div class="empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
                     <p>No members found</p>
                     <span>Try a different filter or search term.</span>
                 </div>`;
@@ -210,7 +210,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
                 document.getElementById('reasonText').textContent          = m.reason || '(No reason provided.)';
                 const status = m.status || 'pending';
                 const statusColors = { pending:'#fef9c3;color:#92400e', approved:'#dcfce7;color:#166534', rejected:'#fee2e2;color:#991b1b' };
-                const statusLabels = { pending:'⏳ Pending', approved:'✅ Approved', rejected:'❌ Rejected' };
+                const statusLabels = { pending:'<i class="fa-solid fa-clock"></i> Pending', approved:'<i class="fa-solid fa-circle-check"></i> Approved', rejected:'<i class="fa-solid fa-circle-xmark"></i> Rejected' };
                 document.getElementById('reasonCurrentStatus').innerHTML = `<span style="padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;background:${statusColors[status]||statusColors.pending}">${statusLabels[status]||status}</span>`;
                 document.getElementById('reasonModal').style.display = 'block';
             });
@@ -293,7 +293,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
         if (orgEvents.length === 0) {
             body.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">📅</div>
+                    <div class="empty-icon"><i class="fa-regular fa-calendar-days"></i></div>
                     <p>No events yet</p>
                     <span>Click "Submit Event" to propose an event. Admin must approve it before it appears publicly.</span>
                 </div>`;
@@ -305,10 +305,10 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
             const month = d ? d.toLocaleString('default', { month: 'short' }) : '—';
             const day   = d ? d.getDate() : '—';
             const badge = ev.rejected
-                ? '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#fee2e2;color:#991b1b;font-weight:700;">❌ Not Approved</span>'
+                ? '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#fee2e2;color:#991b1b;font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> Not Approved</span>'
                 : ev.approved
-                ? '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;">✅ Approved</span>'
-                : '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Pending</span>';
+                ? '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;"><i class="fa-solid fa-circle-check"></i> Approved</span>'
+                : '<span style="font-size:11px;padding:2px 10px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;"><i class="fa-solid fa-clock"></i> Pending</span>';
             return `
             <div class="event-card-row" data-id="${ev.id}">
                 <div class="event-date-pill">
@@ -318,7 +318,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
                 <div class="event-card-info" style="flex:1;">
                     <h4>${ev.title} ${badge}</h4>
                     <p>${ev.description || 'No description.'}</p>
-                    ${ev.location ? `<p style="margin-top:3px;">📍 ${ev.location}</p>` : ''}
+                    ${ev.location ? `<p style="margin-top:3px;"><i class="fa-solid fa-location-dot"></i> ${ev.location}</p>` : ''}
                     <div class="event-card-actions">
                         <button class="ev-action-btn ev-btn-view"   data-id="${ev.id}">View</button>
                         <button class="ev-action-btn ev-btn-edit"   data-id="${ev.id}">Edit</button>
@@ -342,10 +342,10 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
                     ? new Date(ev.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
                     : '(No date.)';
                 document.getElementById('vevStatus').innerHTML = ev.rejected
-                    ? '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#fee2e2;color:#991b1b;font-weight:700;">❌ Not Approved</span>'
+                    ? '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#fee2e2;color:#991b1b;font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> Not Approved</span>'
                     : ev.approved
-                    ? '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;">✅ Approved</span>'
-                    : '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Pending Admin Approval</span>';
+                    ? '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#dcfce7;color:#166534;font-weight:700;"><i class="fa-solid fa-circle-check"></i> Approved</span>'
+                    : '<span style="font-size:12px;padding:3px 12px;border-radius:20px;background:#fef9c3;color:#92400e;font-weight:700;"><i class="fa-solid fa-clock"></i> Pending Admin Approval</span>';
                 document.getElementById('viewEventModal').style.display = 'block';
             });
         });
@@ -416,7 +416,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
         if (selectedDate < todayStart) {
-            alert('❌ Hindi pwede ang nakaraang petsa. Pumili ng date na hindi pa lumipas.');
+            alert('<i class="fa-solid fa-circle-xmark"></i> Hindi pwede ang nakaraang petsa. Pumili ng date na hindi pa lumipas.');
             return;
         }
 
@@ -478,7 +478,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
         const todayStartEdit = new Date();
         todayStartEdit.setHours(0, 0, 0, 0);
         if (selectedEditDate < todayStartEdit) {
-            alert('❌ Hindi pwede ang nakaraang petsa. Pumili ng date na hindi pa lumipas.');
+            alert('<i class="fa-solid fa-circle-xmark"></i> Hindi pwede ang nakaraang petsa. Pumili ng date na hindi pa lumipas.');
             return;
         }
 
@@ -535,7 +535,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
         if (events.length === 0) {
             body.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">📅</div>
+                    <div class="empty-icon"><i class="fa-regular fa-calendar-days"></i></div>
                     <p>No events yet</p>
                     <span>Submit events and students can join them.</span>
                 </div>`;
@@ -549,8 +549,8 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
             const d           = ev.date ? new Date(ev.date) : null;
             const dateStr     = d ? d.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No date';
 
-            const pendingPill  = pending  > 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ ${pending} pending</span>` : '';
-            const approvedPill = approved > 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;">✅ ${approved} attending</span>` : '';
+            const pendingPill  = pending  > 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fef9c3;color:#92400e;font-weight:700;"><i class="fa-solid fa-clock"></i> ${pending} pending</span>` : '';
+            const approvedPill = approved > 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;"><i class="fa-solid fa-circle-check"></i> ${approved} attending</span>` : '';
             const emptyPill    = evAttendees.length === 0 ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#f1f5f9;color:#94a3b8;font-weight:700;">No requests</span>` : '';
 
             const rows = evAttendees.length === 0
@@ -566,10 +566,10 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
                     const isPending = !isMember && matchingJoins.some(oj => (oj.status || 'pending').toLowerCase() === 'pending');
 
                     const memberPill = isMember
-                        ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;">✅ Org Member</span>`
+                        ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#166534;font-weight:700;"><i class="fa-solid fa-circle-check"></i> Org Member</span>`
                         : isPending
-                        ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fef9c3;color:#92400e;font-weight:700;">⏳ Join Pending</span>`
-                        : `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fee2e2;color:#991b1b;font-weight:700;">⚠️ Not in Org</span>`;
+                        ? `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fef9c3;color:#92400e;font-weight:700;"><i class="fa-solid fa-clock"></i> Join Pending</span>`
+                        : `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:#fee2e2;color:#991b1b;font-weight:700;"><i class="fa-solid fa-triangle-exclamation"></i> Not in Org</span>`;
 
                     let actionHtml = '';
                     if (status === 'pending') {
@@ -584,9 +584,9 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
                                 <button class="action-btn reject-btn do-reject-attendee"   data-id="${j.id}">Decline</button>`;
                         }
                     } else if (status === 'approved') {
-                        actionHtml = `<span class="status-badge approved">✅ Approved</span>`;
+                        actionHtml = `<span class="status-badge approved"><i class="fa-solid fa-circle-check"></i> Approved</span>`;
                     } else {
-                        actionHtml = `<span class="status-badge rejected">❌ Declined</span>`;
+                        actionHtml = `<span class="status-badge rejected"><i class="fa-solid fa-circle-xmark"></i> Declined</span>`;
                     }
 
                     return `
@@ -613,7 +613,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
                         </div>
                         <div>
                             <div class="ev-accordion-title">${ev.title}</div>
-                            <div class="ev-accordion-meta">${dateStr}${ev.location ? ' · 📍 ' + ev.location : ''}</div>
+                            <div class="ev-accordion-meta">${dateStr}${ev.location ? ' · <i class="fa-solid fa-location-dot"></i> ' + ev.location : ''}</div>
                             <div class="ev-accordion-pills" style="margin-top:4px;">${pendingPill}${approvedPill}${emptyPill}</div>
                         </div>
                     </div>
@@ -666,7 +666,7 @@ import { ADMIN_EMAIL, getDisplayName, getSessionUser } from './auth.js';
                     reason:   'Added by leader from event attendee request.',
                 });
                 if (error) { alert('Error: ' + error.message); return; }
-                alert(`✅ ${name} added to Members as Pending. Approve them in the Members tab first.`);
+                alert(`<i class="fa-solid fa-circle-check"></i> ${name} added to Members as Pending. Approve them in the Members tab first.`);
                 await renderAttendees();
                 await renderMembers();
             });

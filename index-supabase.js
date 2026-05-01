@@ -38,7 +38,7 @@ async function loadData() {
 
 function logoFor(org) {
     if (org.logo_url) return `<img src="${org.logo_url}" alt="${org.name}" style="width:100%;height:100%;object-fit:cover;">`;
-    return org.logo_emoji || '🏫';
+    return org.logo_emoji || '<i class="fa-solid fa-building-columns"></i>';
 }
 
 function contactFor(org) {
@@ -152,7 +152,7 @@ function renderJoinStatus(ev) {
     if (!user) {
         if (ev.visibility === 'exclusive') {
             return `<div style="margin-top:8px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
-                <span style="display:inline-block;padding:3px 10px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:10px;font-weight:700;">🔒 Members Only - Sign in and join the org first</span>
+                <span style="display:inline-block;padding:3px 10px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:10px;font-weight:700;"><i class="fa-solid fa-lock"></i> Members Only - Sign in and join the org first</span>
                 <a href="sign_in.html" style="display:inline-flex;align-items:center;justify-content:center;width:96px;padding:6px 16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">Join</a>
             </div>`;
         }
@@ -175,9 +175,9 @@ function renderJoinStatus(ev) {
 
     const existing = getEventJoinForUser(ev);
     if (existing) {
-        if (existing.status === 'approved') return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(34,197,94,0.2);color:#4ade80;border-radius:8px;font-size:11px;font-weight:700;">✅ Attending</span>`;
-        if (existing.status === 'rejected') return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(239,68,68,0.2);color:#f87171;border-radius:8px;font-size:11px;font-weight:700;">❌ Request Declined</span>`;
-        return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;">⏳ Request Pending</span>`;
+        if (existing.status === 'approved') return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(34,197,94,0.2);color:#4ade80;border-radius:8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-circle-check"></i> Attending</span>`;
+        if (existing.status === 'rejected') return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(239,68,68,0.2);color:#f87171;border-radius:8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> Request Declined</span>`;
+        return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-clock"></i> Request Pending</span>`;
     }
 
     const membership = joins.find(j => String(j.org_id) === String(ev.org_id) && j.email === user.email);
@@ -186,9 +186,9 @@ function renderJoinStatus(ev) {
     const isRejected = membership?.status === 'rejected';
 
     if (ev.visibility === 'exclusive' && !isMember) {
-        if (isPending) return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;">🔒 Members Only · ⏳ Membership Pending</span>`;
-        if (isRejected) return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(239,68,68,0.2);color:#f87171;border-radius:8px;font-size:11px;font-weight:700;">🔒 Members Only · ❌ Org Join Rejected</span>`;
-        return `<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"><span style="display:inline-block;padding:3px 10px;background:rgba(99,102,241,0.15);color:#818cf8;border-radius:8px;font-size:10px;font-weight:700;">🔒 Members Only - Join the org first</span><a href="viewdetails.html?id=${ev.org_id}" style="display:inline-block;margin-top:4px;padding:5px 14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;text-align:center;">View Org &amp; Apply</a></div>`;
+        if (isPending) return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(245,158,11,0.2);color:#fbbf24;border-radius:8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-lock"></i> Members Only · <i class="fa-solid fa-clock"></i> Membership Pending</span>`;
+        if (isRejected) return `<span style="display:inline-block;margin-top:8px;padding:4px 12px;background:rgba(239,68,68,0.2);color:#f87171;border-radius:8px;font-size:11px;font-weight:700;"><i class="fa-solid fa-lock"></i> Members Only · <i class="fa-solid fa-circle-xmark"></i> Org Join Rejected</span>`;
+        return `<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;"><span style="display:inline-block;padding:3px 10px;background:rgba(99,102,241,0.15);color:#818cf8;border-radius:8px;font-size:10px;font-weight:700;"><i class="fa-solid fa-lock"></i> Members Only - Join the org first</span><a href="viewdetails.html?id=${ev.org_id}" style="display:inline-block;margin-top:4px;padding:5px 14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;text-align:center;">View Org &amp; Apply</a></div>`;
     }
 
     return `<div style="margin-top:8px;display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
@@ -234,9 +234,9 @@ function renderEvents() {
                 <div class="flex flex-col gap-1 mt-auto">
                     <p class="text-indigo-300 text-xs font-semibold">Org: ${ev.org || 'Admin'}</p>
                     ${eventVisibilityBadge(ev)}
-                    ${d ? `<p class="text-white/70 text-xs">📅 ${fullDate}</p>` : ''}
+                    ${d ? `<p class="text-white/70 text-xs"><i class="fa-regular fa-calendar-days"></i> ${fullDate}</p>` : ''}
                     ${time ? `<p class="text-white/70 text-xs">🕐 ${time}</p>` : ''}
-                    ${ev.location ? `<p class="text-white/50 text-xs">📍 ${ev.location}</p>` : ''}
+                    ${ev.location ? `<p class="text-white/50 text-xs"><i class="fa-solid fa-location-dot"></i> ${ev.location}</p>` : ''}
                     ${renderJoinStatus(ev)}
                 </div>
             </div>
@@ -278,29 +278,106 @@ function setNotifBadge(count) {
     badge.style.display = count > 0 ? 'flex' : 'none';
 }
 
-function notifItem(title, text, action) {
+function notifItem(title, text, action, isRead = false) {
+    const dotStyle = isRead ? 'background:transparent;' : 'background:#ef4444;';
+    const titleStyle = isRead ? 'color:#888;' : 'color:#1e1b4b;';
+    const textStyle = isRead ? 'color:#aaa;' : 'color:#888;';
     return `
         <button type="button" class="notif-item" data-action="${action}" style="width:100%;border:0;background:#fff;text-align:left;cursor:pointer;">
-            <span style="width:9px;height:9px;margin-top:5px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span>
+            <span style="width:9px;height:9px;margin-top:5px;border-radius:50%;${dotStyle}flex-shrink:0;"></span>
             <span class="notif-info">
-                <h4>${title}</h4>
-                <p>${text}</p>
+                <h4 style="${titleStyle} margin: 0 0 2px; font-size: 13px; font-weight: 700;">${title}</h4>
+                <p style="${textStyle} margin: 0; font-size: 11px;">${text}</p>
             </span>
         </button>`;
+}
+
+window.markAllRead = function(e) {
+    if (e) e.stopPropagation();
+    if (!authState.user) return;
+    const key = 'read_notifs_' + authState.user.email;
+    const readNotifs = JSON.parse(localStorage.getItem(key) || '[]');
+    
+    if (window.currentNotifs) {
+        window.currentNotifs.forEach(n => {
+            const hash = n.title + '|' + n.text;
+            if (!readNotifs.includes(hash)) readNotifs.push(hash);
+        });
+        localStorage.setItem(key, JSON.stringify(readNotifs));
+        renderNotifications();
+    }
+};
+
+function renderNotifSection(items, emptyMsg, dropdown) {
+    window.currentNotifs = items;
+    const key = 'read_notifs_' + authState.user.email;
+    const readNotifs = JSON.parse(localStorage.getItem(key) || '[]');
+    
+    let unreadCount = 0;
+    const htmlItems = items.slice(0, 8).map(n => {
+        const hash = n.title + '|' + n.text;
+        const isRead = readNotifs.includes(hash);
+        if (!isRead) unreadCount++;
+        return notifItem(n.title, n.text, n.action, isRead);
+    });
+    
+    let html = `
+        <div class="notif-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Notifications</span>
+            ${unreadCount > 0 ? '<button onclick="markAllRead(event)" style="font-size:10px; color:#6366f1; background:none; border:none; cursor:pointer; text-transform:none; letter-spacing:normal; font-weight:700;">Mark all read</button>' : ''}
+        </div>
+    `;
+    
+    html += items.length === 0
+        ? `<div class="notif-empty">${emptyMsg}</div>`
+        : htmlItems.join('');
+        
+    dropdown.innerHTML = html;
+    setNotifBadge(unreadCount);
 }
 
 async function renderNotifications() {
     const dropdown = document.getElementById('notifDropdown');
     if (!dropdown) return;
 
-    if (!authState.user || authState.role === 'admin') {
+    if (!authState.user) {
         setNotifBadge(0);
         dropdown.innerHTML = '';
         return;
     }
 
-    let count = 0;
-    let html = '<div class="notif-header">Notifications</div>';
+    if (authState.role === 'admin') {
+        const [{ data: pendingEvents }, { data: pendingJoins }] = await Promise.all([
+            supabase.from('events').select('id,title').eq('approved', false).eq('rejected', false),
+            supabase.from('joins').select('id,name,email,org_name').eq('status', 'pending'),
+        ]);
+
+        const items = [];
+
+        (pendingEvents || []).forEach(ev => {
+            items.push({
+                title: 'Event needs approval',
+                text: `"${ev.title || 'Untitled'}" is waiting for your review.`,
+                action: 'admin',
+            });
+        });
+
+        (pendingJoins || []).forEach(j => {
+            items.push({
+                title: 'Membership request',
+                text: `${j.name || j.email || 'A student'} wants to join ${j.org_name || 'an organization'}.`,
+                action: 'admin',
+            });
+        });
+
+        renderNotifSection(items, 'No admin notifications.', dropdown);
+        dropdown.querySelectorAll('[data-action="admin"]').forEach(item => {
+            item.addEventListener('click', () => {
+                window.location.href = 'admindash.html';
+            });
+        });
+        return;
+    }
 
     if (authState.role === 'leader' && authState.leader) {
         const orgId = authState.leader.org_id;
@@ -347,13 +424,7 @@ async function renderNotifications() {
             })),
         ];
 
-        count = visible.length;
-        html += visible.length === 0
-            ? '<div class="notif-empty">No leader notifications yet.</div>'
-            : visible.slice(0, 8).map(n => notifItem(n.title, n.text, n.action)).join('');
-
-        dropdown.innerHTML = html;
-        setNotifBadge(count);
+        renderNotifSection(visible, 'No leader notifications yet.', dropdown);
         dropdown.querySelectorAll('[data-action="leader"]').forEach(item => {
             item.addEventListener('click', () => {
                 window.location.href = 'leaderdash.html';
@@ -377,19 +448,16 @@ async function renderNotifications() {
         ...memberOrgEvents.map(ev => ({
             title: 'New organization event',
             text: `${ev.org || 'Your organization'} posted ${ev.title || 'an event'}.`,
+            action: 'student'
         })),
         ...completedOrgApplications.map(j => ({
             title: 'Organization application',
             text: `${j.org_name || 'Organization'}: ${j.status.toUpperCase()}`,
+            action: 'student'
         })),
     ];
-    count = visible.length;
-    html += visible.length === 0
-        ? '<div class="notif-empty">No student notifications yet.</div>'
-        : visible.slice(0, 8).map(n => notifItem(n.title, n.text, 'student')).join('');
-
-    dropdown.innerHTML = html;
-    setNotifBadge(count);
+    
+    renderNotifSection(visible, 'No student notifications yet.', dropdown);
     dropdown.querySelectorAll('[data-action]').forEach(item => {
         item.addEventListener('click', () => {
             document.getElementById('events-section')?.scrollIntoView({ behavior: 'smooth' });
